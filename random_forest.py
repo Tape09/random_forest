@@ -6,13 +6,15 @@ from scipy import stats
 # 0= NUMERICAL ;;; 1= CATEGORICAL
 
 
-def IG(data_left,y_left,data_right,y_right):	
-	
-def GINI(data_left,y_left,data_right,y_right):
-	
-def VR(data_left,y_left,data_right,y_right):
+
 
 def import_datasets(folder):
+	# d = dataset
+	# n = n_samples
+	# m = n_features
+	# categorical variables should be indexes (0,1,2,3 not "R" etc.) remember mapping
+	# type should be 0=numeric, 1=categorical
+	# output type 0=regression, 1=categorical
 	#return d x n x m feature data, d x m variable/feature type, d x n output, d x n output type d x m how many classes
 
 
@@ -43,11 +45,11 @@ class tree: #{ #UNDER CONSTRUCTION
 		self.f_num = f_num;
 		self.f_cat = f_cat;
 		
-		split_feature, split_number, data_left_idx, data_right_idx = find_split(data,data_type,y,n_classes);
+		split_feature, split_number, data_left_idx, data_right_idx = find_split(list(range(len(data))));
 		
-		root = node(data_type[split_feature]);
-		root.split_value = split_number;
-		root.split_feature = split_feature;
+		self.root = node(data_type[split_feature]);
+		self.root.split_value = split_number;
+		self.root.split_feature = split_feature;
 				
 		
 		
@@ -55,6 +57,8 @@ class tree: #{ #UNDER CONSTRUCTION
 	def grow_tree(self, root, data_left_idx, data_right_idx):
 		uq_left = np.unique(self.y[data_left_idx])
 		uq_right = np.unique(self.y[data_right_idx])
+		left_leaf = False;
+		right_leaf = False;
 		
 		if(len(data_left_idx) < self.min_leaf_size):
 			#create leaf node
@@ -64,12 +68,15 @@ class tree: #{ #UNDER CONSTRUCTION
 			else:
 				node_left.value = stats.mode(self.y[data_left_idx]);
 			root.left = node_left;
+			left_leaf = True;
+			
 		else:
 			if(len(uq_left) <= 1):
 				node_left = node(self.y_type);
-				node_left.value = uq_left;
-			# UNDER CONSTRUCTION
-			# if every y is the same - perfect split
+				node_left.value = uq_left[0];
+				root.left = node_left;
+				left_leaf = True;
+				
 				
 			
 		if(len(data_right_idx) < self.min_leaf_size):
@@ -79,67 +86,84 @@ class tree: #{ #UNDER CONSTRUCTION
 				node_right.value = np.mean(self.y[data_right_idx]);
 			else:
 				node_right.value = stats.mode(self.y[data_right_idx]);
-			root.right = node_right;	
-		
-		
-		
-		
+			root.right = node_right;
+			right_leaf = True;
 			
+		else:
+			if(len(uq_right) <= 1):
+				node_right = node(self.y_type);
+				node_right.value = uq_right[0];
+				root.right = node_right;
+				right_leaf = True;
+		
+		
+		if(not right_leaf) #{
+			split_feature, split_number, data_left_idx1, data_right_idx1 = find_split(data_right_idx);
+			node_right = node(self.n_classes[split_feature]);
+			node_right.split_feature = split_feature;
+			node_right.split_value = split_number;
+			
+			root.right = node_right;
+			grow_tree(root.right,data_left_idx1,data_right_idx1);		
+		
+		
+		#}
+		
+		if(not left_leaf) #{
+		
+		
+		
+		
+		#}		
 		
 		
 		
 	#split_feature, split_number, data_left_idx1, data_right_idx1 = find_split(data[data_left_idx],data_type,y[data_left_idx],n_classes);
 	
 	
-	def find_split(self, data, data_type,y,n_classes):
+	def find_split(self, data_idxs): #{
 		best_feature = -1;
 		best_split_number = -1;
 		best_value = -999999;
-
+		best_data_left_idx = -1;
+		best_data_right_idx = -1;
 		
 		
 		for feature in range(data.shape[1]): #{			
 			if(data_type[feature] == 0): #{
-				order = np.argsort(data[:,feature]);
-				sorted_data = data[order,:];
-				sorted_y = y[order,:]
-				for split in range(data.shape[0]-1): #{						
-					split_number = (sorted_data[split,feature] + sorted_data[split+1,feature])/2
-					data_left = sorted_data[:(split+1),:]
-					data_right = sorted_data[(split+1):,:]
-					y_left = sorted_y[:(split+1),:]
-					y_right = sorted_y[(split+1):,:]
-
+				order = np.argsort(data[data_idxs,feature]);
+				sorted_data_idxs = data_idxs[order];
+				sorted_y = y[sorted_data_idxs,:]
+				for split in range(len(sorted_data_idxs)-1): #{						
+					split_number = (self.data[sorted_data_idxs[split],feature] + self.data[sorted_data_idxs[split+1],feature])/2
+					data_left_idx = sorted_data_idxs[:(split+1),:]
+					data_right_idx = sorted_data_idxs[(split+1):,:]
 					
-					value = self.f_num(data_left,y_left,data_right,y_right);
+					value = self.f_num(data_left_idx,data_right_idx);
 					
 					if(value > best_value):
 						best_feature = feature;
 						best_split_number = split_number;
 						best_value = value;
-						data_idx_left = order[:(split+1)];
-						data_idx_right = order[(split+1):];
+						best_data_left_idx = data_left_idx;
+						best_data_right_idx = data_right_idx;
 						
 
 				#}
 			#}	
 			else: #{
 				for split in range(n_classes[feature]): #{	
-					idx_left = data[:,feature] != split
-					idx_right = data[:,feature] == split
-					data_left = data[idx_left,feature]
-					data_right = data[idx_right,feature]
-					y_left = y[idx_left]
-					y_right = y[idx_right]
+					idx_left = data_idxs[self.data[data_idxs,feature] != split]
+					idx_right = data_idxs[self.data[data_idxs,feature] == split]
 					
-					value = self.f_cat(data_left,y_left,data_right,y_right);
+					value = self.f_cat(data_left_idx,data_right_idx);
 					
 					if(value > best_value):
 						best_feature = feature;
 						best_split_number = split;
 						best_value = value;
-						data_idx_left = idx_left;
-						data_idx_right = idx_right;
+						best_data_left_idx = idx_left;
+						best_data_right_idx = idx_right;
 						
 					
 				#}
@@ -147,7 +171,17 @@ class tree: #{ #UNDER CONSTRUCTION
 			#}
 		#}
 		
-		return best_feature,best_split_number,data_idx_left, data_idx_right
+		return best_feature,best_split_number,best_data_left_idx, best_data_right_idx
+	#}
+	
+	
+	def IG(data_left_idx,data_right_idx):	
+	
+	def GINI(data_left_idx,data_right_idx):
+		
+	def VR(data_left_idx,data_right_idx):
+	
+	
 #}
 	
 	
