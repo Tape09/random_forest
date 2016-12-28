@@ -7,15 +7,71 @@ from scipy import stats
 
 
 
+def import_datasets(name_data, data):
+    if name_data == 'glass.txt':
+        dataset = data[:, 1:-1]
+        [num_samples, num_features] = dataset.shape
+        class_v = data[:,-1]
+        cat = 1
+        return dataset, num_samples, num_features, class_v, cat
 
-def import_datasets(folder):
-	# d = dataset
-	# n = n_samples
-	# m = n_features
-	# categorical variables should be indexes (0,1,2,3 not "R" etc.) remember mapping
-	# type should be 0=numeric, 1=categorical
-	# output type 0=regression, 1=categorical
-	#return d x n x m feature data, d x m variable/feature type, d x n output, d x n output type d x m how many classes
+#   # d = dataset
+# 	# n = n_samples
+# 	# m = n_features
+#
+# 	# categorical variables should be indexes (0,1,2,3 not "R" etc.) remember mapping
+# 	# type should be 0=numeric, 1=categorical
+# 	# output type 0=regression, 1=categorical
+
+
+
+
+
+def readdata(datapath):
+    '''
+        The directory system:
+        The project is in the file named "project"
+        It has "src", which save all the source codes, and "data", which has all the training data.
+        
+        Data are separated with ','
+        Read the data into the a 'matrix' which is ndarray in python
+        indexing in this way
+        data[1,2], data[:,-1] or data[1,:]
+        
+        Sometimes, the first column is the index of the data
+        Somtimes, the last column is the class of the data, or the first column
+        :param datapath: the path of the data
+        :return: 'data' is ndarray
+        '''
+    data_l = []
+    with open(datapath,"r") as f:
+        mylist = f.read().splitlines()
+        for line in mylist:
+            currentline = line.split(",")
+            data_l.append(currentline)
+    data = np.array(data_l)
+    return data
+
+def get_paths(data_name):
+    '''
+        Get the project path and training data path
+        :param data_name: the name of the test data
+        :return: training data path
+        '''
+    src_path = os.getcwd()
+    project_path = os.path.dirname(src_path)
+    data_path = os.path.join(project_path, 'data')
+    test_data_dir = os.path.join(data_path, data_name)
+    return test_data_dir
+
+def demo():
+    name_data = 'glass.txt'
+    datapath = get_paths(name_data)  # give the name of the data file, return the accessible path
+    data = readdata(datapath)
+    dataset, num_samples, num_features, class_v, cat = import_datasets(name_data, data)
+    
+    print dataset, num_samples, num_features, class_v, cat
+
 
 
 
