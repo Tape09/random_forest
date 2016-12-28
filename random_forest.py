@@ -175,7 +175,11 @@ class tree: #{ #UNDER CONSTRUCTION
 	#}
 	
 	
-	def IG(data_left_idx,data_right_idx):	
+	
+	# input is indexes over data
+	# these are member functions, so you can use self.data
+	# should return a float
+	def IG(data_left_idx,data_right_idx):
 	
 	def GINI(data_left_idx,data_right_idx):
 		
