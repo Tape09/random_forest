@@ -32,10 +32,6 @@ def import_datasets(name_data, data):
 
 def readdata(datapath):
     '''
-    The directory system:
-    The project is in the file named "project"
-    It has "src", which save all the source codes, and "data", which has all the training data.
-
     Data are separated with ','
     Read the data into the a 'matrix' which is ndarray in python
     indexing in this way
@@ -57,15 +53,19 @@ def readdata(datapath):
 
 def get_paths(data_name):
     '''
+    The directory system:
+    The project is in the file named "project"
+    It has "src", which save all the source codes, and "data", which has all the training data.
+
     Get the project path and training data path
     :param data_name: the name of the test data
     :return: training data path
     '''
-    src_path = os.getcwd()
-    project_path = os.path.dirname(src_path)
-    data_path = os.path.join(project_path, 'data')
-    test_data_dir = os.path.join(data_path, data_name)
-    return test_data_dir
+    src_path = os.getcwd()  # get the directory of src
+    project_path = os.path.dirname(src_path)  # get the parent directory of src, that is project
+    data_path = os.path.join(project_path, 'data')  # get the directory of data, which should be in the project
+    training_data_dir = os.path.join(data_path, data_name)  # now we are in the folder containing the training data
+    return training_data_dir
 
 def demo():
     name_data = 'glass.txt'
