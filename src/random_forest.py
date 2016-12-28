@@ -93,38 +93,52 @@ class random_forest: #{
 
 
 class tree: #{ #UNDER CONSTRUCTION
-	def __init__(data, data_type, y, y_type, n_classes, min_leaf_size = 1, f_num = VR, f_cat = IG):
+	def __init__(self, data, data_type, y, y_type, n_classes, min_leaf_size = 1,f_num = "VR", f_cat = "IG"):
 		self.data = data;
 		self.data_type = data_type;
 		self.y = y;
 		self.y_type = y_type;
 		self.n_classes = n_classes;
 		self.min_leaf_size = min_leaf_size;
-		self.f_num = f_num;
-		self.f_cat = f_cat;
+		self.options = {"VR" : self.VR, "IG" : self.IG, "GINI" : self.GINI, "TEST" : self.TEST}
+		self.f_num = self.options[f_num];
+		self.f_cat = self.options[f_cat];
 		
-		split_feature, split_number, data_left_idx, data_right_idx = find_split(list(range(len(data))));
+		split_feature, split_number, data_left_idx, data_right_idx = self.find_split(np.array(list(range(len(data)))));
 		
 		self.root = node(data_type[split_feature]);
 		self.root.split_value = split_number;
 		self.root.split_feature = split_feature;
+		self.grow_tree(self.root, data_left_idx, data_right_idx);
+		
+		#~ init();
 				
 		
 		
+	def init(self,f_num = "VR", f_cat = "IG"):		
+			self.f_num = self.options[f_num];
+			self.f_cat = self.options[f_cat];
 		
-	def grow_tree(self, root, data_left_idx, data_right_idx):
+		
+	# TODO: PREDICTION
+
+	# TODO: VISUALIZATION??
+	
+		
+	def grow_tree(self, root, data_left_idx, data_right_idx): #{
 		uq_left = np.unique(self.y[data_left_idx])
 		uq_right = np.unique(self.y[data_right_idx])
 		left_leaf = False;
 		right_leaf = False;
 		
-		if(len(data_left_idx) < self.min_leaf_size):
+		
+		if(len(data_left_idx) <= self.min_leaf_size):
 			#create leaf node
 			node_left = node(self.y_type);
-			if(y_type == 0):
+			if(self.y_type == 0):
 				node_left.value = np.mean(self.y[data_left_idx]);
 			else:
-				node_left.value = stats.mode(self.y[data_left_idx]);
+				node_left.value = stats.mode(self.y[data_left_idx])[0][0];
 			root.left = node_left;
 			left_leaf = True;
 			
@@ -137,13 +151,13 @@ class tree: #{ #UNDER CONSTRUCTION
 				
 				
 			
-		if(len(data_right_idx) < self.min_leaf_size):
+		if(len(data_right_idx) <= self.min_leaf_size):
 			#create leaf node
 			node_right = node(self.y_type);
-			if(y_type == 0):
+			if(self.y_type == 0):
 				node_right.value = np.mean(self.y[data_right_idx]);
 			else:
-				node_right.value = stats.mode(self.y[data_right_idx]);
+				node_right.value = stats.mode(self.y[data_right_idx])[0][0];
 			root.right = node_right;
 			right_leaf = True;
 			
@@ -155,28 +169,27 @@ class tree: #{ #UNDER CONSTRUCTION
 				right_leaf = True;
 		
 		
-		if(not right_leaf) #{
-			split_feature, split_number, data_left_idx1, data_right_idx1 = find_split(data_right_idx);
+		if(not right_leaf): #{
+			split_feature, split_number, data_left_idx1, data_right_idx1 = self.find_split(data_right_idx);
 			node_right = node(self.n_classes[split_feature]);
 			node_right.split_feature = split_feature;
 			node_right.split_value = split_number;
 			
 			root.right = node_right;
-			grow_tree(root.right,data_left_idx1,data_right_idx1);		
-		
-		
+			self.grow_tree(root.right,data_left_idx1,data_right_idx1);		
 		#}
 		
-		if(not left_leaf) #{
-		
-		
-		
-		
+		if(not left_leaf): #{
+			split_feature, split_number, data_left_idx1, data_right_idx1 = self.find_split(data_left_idx);
+			node_left = node(self.n_classes[split_feature]);
+			node_left.split_feature = split_feature;
+			node_left.split_value = split_number;
+			
+			root.left = node_left;
+			self.grow_tree(root.left,data_left_idx1,data_right_idx1);		
 		#}		
+	#}
 		
-		
-		
-	#split_feature, split_number, data_left_idx1, data_right_idx1 = find_split(data[data_left_idx],data_type,y[data_left_idx],n_classes);
 	
 	
 	def find_split(self, data_idxs): #{
@@ -187,15 +200,15 @@ class tree: #{ #UNDER CONSTRUCTION
 		best_data_right_idx = -1;
 		
 		
-		for feature in range(data.shape[1]): #{			
-			if(data_type[feature] == 0): #{
-				order = np.argsort(data[data_idxs,feature]);
+		for feature in range(self.data.shape[1]): #{			
+			if(self.data_type[feature] == 0): #{				
+				order = np.argsort(self.data[data_idxs,feature]);
 				sorted_data_idxs = data_idxs[order];
-				sorted_y = y[sorted_data_idxs,:]
-				for split in range(len(sorted_data_idxs)-1): #{						
-					split_number = (self.data[sorted_data_idxs[split],feature] + self.data[sorted_data_idxs[split+1],feature])/2
-					data_left_idx = sorted_data_idxs[:(split+1),:]
-					data_right_idx = sorted_data_idxs[(split+1):,:]
+				uq_values, uq_idx = np.unique(self.data[sorted_data_idxs,feature],return_index = True);
+				for split in range(len(uq_idx)-1): #{
+					split_number = (uq_values[split] + uq_values[split+1])/2
+					data_left_idx = data_idxs[self.data[data_idxs,feature] < split_number]
+					data_right_idx = data_idxs[self.data[data_idxs,feature] >= split_number]
 					
 					value = self.f_num(data_left_idx,data_right_idx);
 					
@@ -210,11 +223,11 @@ class tree: #{ #UNDER CONSTRUCTION
 				#}
 			#}	
 			else: #{
-				for split in range(n_classes[feature]): #{	
+				for split in range(self.n_classes[feature]): #{	
 					idx_left = data_idxs[self.data[data_idxs,feature] != split]
 					idx_right = data_idxs[self.data[data_idxs,feature] == split]
 					
-					value = self.f_cat(data_left_idx,data_right_idx);
+					value = self.f_cat(idx_left,idx_right);
 					
 					if(value > best_value):
 						best_feature = feature;
@@ -229,6 +242,7 @@ class tree: #{ #UNDER CONSTRUCTION
 			#}
 		#}
 		
+		
 		return best_feature,best_split_number,best_data_left_idx, best_data_right_idx
 	#}
 	
@@ -237,11 +251,14 @@ class tree: #{ #UNDER CONSTRUCTION
 	# input is indexes over data
 	# these are member functions, so you can use self.data
 	# should return a float
-	def IG(data_left_idx,data_right_idx):
-	
-	def GINI(data_left_idx,data_right_idx):
-		
-	def VR(data_left_idx,data_right_idx):
+	def IG(self,data_left_idx,data_right_idx):
+		return 0
+	def GINI(self,data_left_idx,data_right_idx):
+		return 0
+	def VR(self,data_left_idx,data_right_idx):
+		return 0
+	def TEST(self,data_left_idx,data_right_idx):
+		return -(np.var(self.y[data_left_idx]) + np.var(self.y[data_right_idx]))
 	
 	
 #}
@@ -250,8 +267,8 @@ class tree: #{ #UNDER CONSTRUCTION
 	
 	
 	
-class node: #{ #UNDER CONSTRUCTION
-	def __init__(is_num):
+class node: #{ 
+	def __init__(self,is_num):
 		self.left = None;
 		self.right = None;
 		self.is_num = is_num;
@@ -259,13 +276,11 @@ class node: #{ #UNDER CONSTRUCTION
 		self.split_value = None;
 		self.value = None;
 
-	def is_leaf():
+	def is_leaf(self):
 		return (self.left == None and self.right == None)
 
 
 #}
-
-
 
 
 
