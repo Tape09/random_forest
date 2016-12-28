@@ -6,11 +6,11 @@ from scipy import stats
 # 0= NUMERICAL ;;; 1= CATEGORICAL
 
 
-def IG():	
+def IG(data_left,y_left,data_right,y_right):	
 	
-def GINI():
+def GINI(data_left,y_left,data_right,y_right):
 	
-def VR():
+def VR(data_left,y_left,data_right,y_right):
 
 def import_datasets(folder):
 	#return d x n x m feature data, d x m variable/feature type, d x n output, d x n output type d x m how many classes
@@ -46,10 +46,9 @@ class tree: #{ #UNDER CONSTRUCTION
 		split_feature, split_number, data_left_idx, data_right_idx = find_split(data,data_type,y,n_classes);
 		
 		root = node(data_type[split_feature]);
-		root.split = split_number;
-		
-		
-		
+		root.split_value = split_number;
+		root.split_feature = split_feature;
+				
 		
 		
 		
@@ -160,7 +159,8 @@ class node: #{ #UNDER CONSTRUCTION
 		self.left = None;
 		self.right = None;
 		self.is_num = is_num;
-		self.split = None;
+		self.split_feature = None;
+		self.split_value = None;
 		self.value = None;
 
 	def is_leaf():
