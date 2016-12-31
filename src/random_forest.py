@@ -120,9 +120,15 @@ class tree: #{ #UNDER CONSTRUCTION
 			self.f_cat = self.options[f_cat];
 		
 		
-	# TODO: PREDICTION
+	def predict(self, data_point):
+		return self.root.predict(data_point);
 
 	# TODO: VISUALIZATION??
+	def visualize(self, bounds):
+		#return a list of pairs of points
+		#each pair defines a seperation line
+		#bounds are the bounds for plotting, should be same as plt.axis(bounds)
+		return 0;
 	
 		
 	def grow_tree(self, root, data_left_idx, data_right_idx): #{
@@ -276,10 +282,28 @@ class node: #{
 		self.split_value = None;
 		self.value = None;
 
+	def predict(self, data_point): #{
+		if(self.is_leaf()): #{
+			return self.value;
+		else:
+			if(self.compare(data_point)):
+				return self.right.predict(data_point);
+			else:
+				return self.left.predict(data_point);
+		#}
+	#}	
+	
 	def is_leaf(self):
 		return (self.left == None and self.right == None)
 
 
+	def compare(self, data_point):
+		if(is_num):
+			return data_point[self.split_feature] > self.split_value;
+		else:
+			return data_point[self.split_feature] == self.split_value;
+		
+		
 #}
 
 
