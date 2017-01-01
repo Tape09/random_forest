@@ -64,9 +64,9 @@ class DataPool:
 
 def demo():
     data = DataPool('glass.txt')
-    print data.data
-    print data.class_v
-    print data.attribute_type
-    print data.cla_reg
-    print data.num_class
+    print (data.data)
+    print (data.class_v)
+    print (data.attribute_type)
+    print (data.cla_reg)
+    print (data.num_class)
 
