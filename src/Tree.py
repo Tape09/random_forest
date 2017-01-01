@@ -107,32 +107,51 @@ class tree:  # { #UNDER CONSTRUCTION
                 right_leaf = True;
 
 
-        if(not right_leaf  ):  # {                #if right is not a leaf
+        if(not right_leaf):  # {                #if right is not a leaf
             split_feature, split_number, data_left_idx1, data_right_idx1 = self.find_split(data_right_idx);
             
-            # TODO: CHECK IF INVALID SPLIT (-1 RETURN)
+            # CHECK IF INVALID SPLIT (-1 RETURN)
             # MAKE LEAF NODE IF INVALID
             
-            node_right = node(self.data_type[split_feature]);
-            node_right.split_feature = split_feature;
-            node_right.split_value = split_number;
+            if(split_feature == -1):
+                node_right = node(self.y_type);
+                if(self.y_type == 0):
+                    node_right.value = np.mean(self.y[data_right_idx]);
+                else:
+                    node_right.value = stats.mode(self.y[data_right_idx])[0][0];
+                root.right = node_right;
+                
+            else:            
+                node_right = node(self.data_type[split_feature]);
+                node_right.split_feature = split_feature;
+                node_right.split_value = split_number;
 
-            root.right = node_right;
-            self.grow_tree(root. right, data_left_idx1,data_right_idx1);
+                root.right = node_right;
+                self.grow_tree(root.right, data_left_idx1,data_right_idx1);
         # }
 
         if(not  left_leaf):  # {                     # if left is nto a leaf
             split_feature, split_number, data_left_idx1, data_right_idx1 = self.find_split(data_left_idx);
             
-            # TODO: CHECK IF INVALID SPLIT (-1 RETURN)
+            # CHECK IF INVALID SPLIT (-1 RETURN)
             # MAKE LEAF NODE IF INVALID
             
-            node_left = node(self.data_type[split_feature]);
-            node_left.split_feature = split_feature;
-            node_left.split_value = split_number;
+            
+            if(split_feature == -1):
+                node_left = node(self.y_type);
+                if(self.y_type == 0):
+                    node_left.value = np.mean(self.y[data_left_idx]);
+                else:
+                    node_left.value = stats.mode(self.y[data_left_idx])[0][0];
+                root.left = node_left;
+                
+            else:           
+                node_left = node(self.data_type[split_feature]);
+                node_left.split_feature = split_feature;
+                node_left.split_value = split_number;
 
-            root.left = node_left;
-            self.grow_tree(root. left, data_left_idx1,data_right_idx1);
+                root.left = node_left;
+                self.grow_tree(root.left, data_left_idx1,data_right_idx1);
             # }
 
     # }
@@ -195,9 +214,9 @@ class tree:  # { #UNDER CONSTRUCTION
             # }	  
             else:  # {             # if cat feature
                 
-                
-                # TODO: CHECK IF ALL FEATURE VALUES ARE THE SAME, SOLVE IT SAME WAY AS ABOVE
-                
+                # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
+                # TODO: CHECK IF ALL FEATURE VALUES ARE THE SAME, SOLVE IT SAME WAY AS FOR NUM #
+                # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
                 
                 for split in range(self.n_classes[feature]):  # {	         #loop over splits
                     idx_left = data_idxs[self.data[data_idxs, feature] != split]
