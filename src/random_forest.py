@@ -19,7 +19,7 @@ class DataPool:
         self.data = self.rawdata[:, 1:-1]  # only the data
 
         [self.num_samples, self.num_features] = self.data.shape
-        self.class_v = self.rawdata[: -1]
+        self.class_v = self.rawdata[:, -1]
 
 class DataPool:
     """
