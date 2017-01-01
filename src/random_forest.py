@@ -1,5 +1,6 @@
 
 import numpy as np
+import numpy.random as rnd
 from scipy import stats
 import os
 
@@ -93,13 +94,14 @@ class random_forest: #{
 
 
 class tree: #{ #UNDER CONSTRUCTION
-	def __init__(self, data, data_type, y, y_type, n_classes, min_leaf_size = 1,f_num = "VR", f_cat = "IG"):
+	def __init__(self, data, data_type, y, y_type, n_classes, F = 1, min_leaf_size = 1,f_num = "VR", f_cat = "IG"):
 		self.data = data;
 		self.data_type = data_type;
 		self.y = y;
 		self.y_type = y_type;
 		self.n_classes = n_classes;
 		self.min_leaf_size = min_leaf_size;
+		self.F = F;
 		self.options = {"VR" : self.VR, "IG" : self.IG, "GINI" : self.GINI, "TEST" : self.TEST}
 		self.f_num = self.options[f_num];
 		self.f_cat = self.options[f_cat];
@@ -177,7 +179,7 @@ class tree: #{ #UNDER CONSTRUCTION
 		
 		if(not right_leaf): #{
 			split_feature, split_number, data_left_idx1, data_right_idx1 = self.find_split(data_right_idx);
-			node_right = node(self.n_classes[split_feature]);
+			node_right = node(self.data_type[split_feature]);
 			node_right.split_feature = split_feature;
 			node_right.split_value = split_number;
 			
@@ -187,7 +189,7 @@ class tree: #{ #UNDER CONSTRUCTION
 		
 		if(not left_leaf): #{
 			split_feature, split_number, data_left_idx1, data_right_idx1 = self.find_split(data_left_idx);
-			node_left = node(self.n_classes[split_feature]);
+			node_left = node(self.data_type[split_feature]);
 			node_left.split_feature = split_feature;
 			node_left.split_value = split_number;
 			
@@ -206,7 +208,11 @@ class tree: #{ #UNDER CONSTRUCTION
 		best_data_right_idx = -1;
 		
 		
-		for feature in range(self.data.shape[1]): #{			
+		feature_idxs = np.array(list(range(self.data.shape[1])));
+		random_features = rnd.choice(feature_idxs,self.F,replace = False);
+		
+		
+		for feature in random_features: #{			
 			if(self.data_type[feature] == 0): #{				
 				order = np.argsort(self.data[data_idxs,feature]);
 				sorted_data_idxs = data_idxs[order];
