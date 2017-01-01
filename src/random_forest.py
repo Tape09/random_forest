@@ -20,6 +20,21 @@ class DataPool:
 
         [self.num_samples, self.num_features] = self.data.shape
         self.class_v = self.rawdata[: -1]
+
+class DataPool:
+    """
+    The collection of all the data
+    Take use of the methods to retrieve the data we need
+    """
+    def __init__(self, name_data):
+        # only for glass
+        self.name_data = name_data
+        self.datapath = self.__get_paths(name_data)
+        self.rawdata = self.__readdata()  # without any processing
+        self.data = self.rawdata[:, 1:-1]  # only the data
+
+        [self.num_samples, self.num_features] = self.data.shape
+        self.class_v = self.rawdata[:, -1]
         self.attribute_type = [0] * 9  # 0: numerical, 1: categorical
         self.cla_reg = 1  # Whether classification or regression, 1 is classification.
         self.num_class = 6
@@ -64,6 +79,17 @@ class DataPool:
                 data_l.append(currentline)
         data = np.array(data_l)
         return data
+
+
+def demo():
+    data = DataPool('glass.txt')
+    print data.data
+    print data.class_v
+    print data.attribute_type
+    print data.cla_reg
+    print data.num_class
+
+
 
 class random_forest: #{
 	def __init__(number_of_trees, F, min_leaf_size = 1, f_num = VR, f_cat = IG): #{
