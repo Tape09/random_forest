@@ -19,7 +19,7 @@ import os
 # f_fum = the metric to be used for numerical
 # f_cat = the metric to be used for categorical
 class tree:  # { #UNDER CONSTRUCTION
-    def __init__(self, data, data_type, y, y_type, n_classes, F = 1, min_leaf_size = 1 ,f_num = "VR", f_cat = "IG"):
+    def __init__(self, data, data_type, y, y_type, n_classes, F = 1, min_leaf_size = 1 ,n_retry = 1,f_num = "VR", f_cat = "IG"):
         self.data = data;
         self.data_type = data_type;
         self.y = y;
@@ -30,6 +30,7 @@ class tree:  # { #UNDER CONSTRUCTION
         self.options = {"VR" : self.VR, "IG" : self.IG, "GINI" : self.GINI, "TEST" : self.TEST}
         self.f_num = self.options[f_num];
         self.f_cat = self.options[f_cat];
+        self.n_retry = n_retry;
 
         split_feature, split_number, data_left_idx, data_right_idx = self.find_split(np.array(list(range(len(data)))));
 
@@ -68,6 +69,7 @@ class tree:  # { #UNDER CONSTRUCTION
         uq_right = np.unique(self.y[data_right_idx])
         left_leaf = False;
         right_leaf = False;
+        #~ print(data_left_idx)
         if(len(data_left_idx) <= self.min_leaf_size):  # are there less than min_leaf_size samples?
             # create leaf node
             node_left = node(self.y_type);
@@ -87,9 +89,7 @@ class tree:  # { #UNDER CONSTRUCTION
 
 
 
-        if(len(
-
-        data_right_idx) <= self.min_leaf_size)  : # are there less than min_leaf_size samples?
+        if(len(data_right_idx) <= self.min_leaf_size)  : # are there less than min_leaf_size samples?
             # create leaf node
             node_right = node(self.y_type);
             if(self.y_type == 0):
@@ -109,6 +109,10 @@ class tree:  # { #UNDER CONSTRUCTION
 
         if(not right_leaf  ):  # {                #if right is not a leaf
             split_feature, split_number, data_left_idx1, data_right_idx1 = self.find_split(data_right_idx);
+            
+            # TODO: CHECK IF INVALID SPLIT (-1 RETURN)
+            # MAKE LEAF NODE IF INVALID
+            
             node_right = node(self.data_type[split_feature]);
             node_right.split_feature = split_feature;
             node_right.split_value = split_number;
@@ -119,6 +123,10 @@ class tree:  # { #UNDER CONSTRUCTION
 
         if(not  left_leaf):  # {                     # if left is nto a leaf
             split_feature, split_number, data_left_idx1, data_right_idx1 = self.find_split(data_left_idx);
+            
+            # TODO: CHECK IF INVALID SPLIT (-1 RETURN)
+            # MAKE LEAF NODE IF INVALID
+            
             node_left = node(self.data_type[split_feature]);
             node_left.split_feature = split_feature;
             node_left.split_value = split_number;
@@ -140,21 +148,35 @@ class tree:  # { #UNDER CONSTRUCTION
         # returns best feature, best split, and the indexes of the data that are split to the left/right
         best_feature = -1;
         best_split_number = -1;
-        best_value = -999999;
+        best_value = -999999999;
         best_data_left_idx = -1;
         best_data_right_idx = -1;
 
 
         feature_idxs = np.array(list(range(self.data.shape[1])));
-        random_features = rnd.choice( feature_idxs, self.F,replace = False);
+        random_features = np.array(rnd.choice( feature_idxs, self.F,replace = False));
+        #~ print(random_features)
 
-
-        for feature in  random_features:  # {			 # loop over features
+        for feature in random_features:  # {			 # loop over features
             if(self.data_type[feature]  == 0):  # {    # if numeric feature
                 order = np.argsort(self.data[ data_idxs,feature]);
                 sorted_data_idxs = data_idxs[order];
-                uq_values, uq_idx = np.unique(self.data[ sorted_data_idxs, feature],return_index = True);
-                for split in range(len (  uq_idx)-1):  # {       #loop over splits
+                
+                for i in range(self.n_retry):
+                    uq_values, uq_idx = np.unique(self.data[ sorted_data_idxs, feature],return_index = True);
+                    if(len(uq_values) > 1):
+                        break;
+                        
+                if(len(uq_values) <= 1):
+                    # make it a leaf
+                    # check for -1 in grow_tree
+                    return -1, -1, -1, -1; 
+                    
+                    
+                #~ print(uq_values)
+                #~ print(uq_idx)
+                #~ print(sorted_data_idxs)
+                for split in range(len (uq_idx)-1):  # {       #loop over splits
                     split_number = (uq_values[split] + uq_values [ split+1])/2
                     data_left_idx = data_idxs[self.data[ data_idxs,feature] < split_number]
                     data_right_idx = data_idxs[self.data[ data_idxs,feature] >= split_number]
@@ -169,8 +191,14 @@ class tree:  # { #UNDER CONSTRUCTION
                         best_data_right_idx = data_right_idx;
 
 
-                        # }
-            # }	  else:  # {             # if cat feature
+                # }
+            # }	  
+            else:  # {             # if cat feature
+                
+                
+                # TODO: CHECK IF ALL FEATURE VALUES ARE THE SAME, SOLVE IT SAME WAY AS ABOVE
+                
+                
                 for split in range(self.n_classes[feature]):  # {	         #loop over splits
                     idx_left = data_idxs[self.data[data_idxs, feature] != split]
                     idx_right = data_idxs[self.data[data_idxs, feature] == split]
@@ -185,9 +213,8 @@ class tree:  # { #UNDER CONSTRUCTION
                         best_data_right_idx = idx_right;
 
 
-                        # }
-
-                        # }
+                # }
+            # }
         # }
 
 
@@ -212,4 +239,4 @@ class tree:  # { #UNDER CONSTRUCTION
         return -(np.var(self.y[data_left_idx]) + np.var(self.y[data_right_idx]))
 
 
-        # }
+# }
