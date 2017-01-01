@@ -1,6 +1,8 @@
 import numpy as np
 from scipy import stats
-from random_forest import *
+from RandomForest import *
+from DataPool import *
+
 import matplotlib.pyplot as plt
 
 

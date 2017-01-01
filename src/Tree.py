@@ -67,7 +67,8 @@ class tree:  # { #UNDER CONSTRUCTION
         uq_left = np.unique(self.y[data_left_idx])
         uq_right = np.unique(self.y[data_right_idx])
         left_leaf = False;
-        right_leaf = False; if(len(data_left_idx) <= self.min_leaf_size):  # are there less than min_leaf_size samples?
+        right_leaf = False;
+        if(len(data_left_idx) <= self.min_leaf_size):  # are there less than min_leaf_size samples?
             # create leaf node
             node_left = node(self.y_type);
             if(self. y_type == 0):
