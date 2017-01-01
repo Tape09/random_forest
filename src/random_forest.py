@@ -6,77 +6,64 @@ import os
 
 
 # 0= NUMERICAL ;;; 1= CATEGORICAL
+class DataPool:
+    """
+    The collection of all the data
+    Take use of the methods to retrieve the data we need
+    """
+    def __init__(self, name_data):
+        # only for glass
+        self.name_data = name_data
+        self.datapath = self.__get_paths(name_data)
+        self.rawdata = self.readdata()  # without any processing
+        self.data = self.rawdata[:, 1:-1]  # only the data
 
+        [self.num_samples, self.num_features] = self.data.shape
+        self.class_v = self.rawdata[: -1]
+        self.attribute_type = [0] * 9  # 0: numerical, 1: categorical
+        self.cla_reg = 1  # Whether classification or regression, 1 is classification.
+        self.num_class = 6
 
+    def __get_paths(self, data_name):
+        '''
+        The directory system:
+        The project is in the file named "project"
+        It has "src", which save all the source codes, and "data", which has all the training data.
 
+        Get the project path and training data path
+        :param data_name: the name of the test data
+        :return: training data path
+        '''
+        src_path = os.getcwd()  # get the directory of src
+        project_path = os.path.dirname(src_path)  # get the parent directory of src, that is project
+        data_path = os.path.join(project_path, 'data')  # get the directory of data, which should be in the project
+        training_data_dir = os.path.join(data_path, data_name)  # now we are in the folder containing the training data
+        return training_data_dir
 
+    def __readdata(self):
+        '''
+        The directory system:
+        The project is in the file named "project"
+        It has "src", which save all the source codes, and "data", which has all the training data.
 
-def import_datasets(name_data, data):
-    if name_data == 'glass.txt':
-        dataset = data[:, 1:-1]
-        [num_samples, num_features] = dataset.shape
-        class_v = data[:,-1]
-        cat = 1
-        return dataset, num_samples, num_features, class_v, cat
+        Data are separated with ','
+        Read the data into the a 'matrix' which is ndarray in python
+        indexing in this way
+        data[1,2], data[:,-1] or data[1,:]
 
-#   # d = dataset
-# 	# n = n_samples
-# 	# m = n_features
-#
-# 	# categorical variables should be indexes (0,1,2,3 not "R" etc.) remember mapping
-# 	# type should be 0=numeric, 1=categorical
-# 	# output type 0=regression, 1=categorical
-
-
-
-
-
-def readdata(datapath):
-    '''
-    Data are separated with ','
-    Read the data into the a 'matrix' which is ndarray in python
-    indexing in this way
-    data[1,2], data[:,-1] or data[1,:]
-
-    Sometimes, the first column is the index of the data
-    Somtimes, the last column is the class of the data, or the first column
-    :param datapath: the path of the data
-    :return: 'data' is ndarray
-    '''
-    data_l = []
-    with open(datapath,"r") as f:
-        mylist = f.read().splitlines()
-        for line in mylist:
-            currentline = line.split(",")
-            data_l.append(currentline)
-    data = np.array(data_l)
-    return data
-
-def get_paths(data_name):
-    '''
-    The directory system:
-    The project is in the file named "project"
-    It has "src", which save all the source codes, and "data", which has all the training data.
-
-    Get the project path and training data path
-    :param data_name: the name of the test data
-    :return: training data path
-    '''
-    src_path = os.getcwd()  # get the directory of src
-    project_path = os.path.dirname(src_path)  # get the parent directory of src, that is project
-    data_path = os.path.join(project_path, 'data')  # get the directory of data, which should be in the project
-    training_data_dir = os.path.join(data_path, data_name)  # now we are in the folder containing the training data
-    return training_data_dir
-
-def demo():
-    name_data = 'glass.txt'
-    datapath = get_paths(name_data)  # give the name of the data file, return the accessible path
-    data = readdata(datapath)
-    dataset, num_samples, num_features, class_v, cat = import_datasets(name_data, data)
-
-    print dataset, num_samples, num_features, class_v, cat
-
-
+        Sometimes, the first column is the index of the data
+        Somtimes, the last column is the class of the data, or the first column
+        :param datapath: the path of the data
+        :return: 'data' is ndarray
+        '''
+        data_l = []
+        with open(self.datapath, "r") as f:
+            mylist = f.read().splitlines()
+            for line in mylist:
+                currentline = line.split(",")
+                data_l.append(currentline)
+        data = np.array(data_l)
+        return data
 
 class random_forest: #{
 	def __init__(number_of_trees, F, min_leaf_size = 1, f_num = VR, f_cat = IG): #{
