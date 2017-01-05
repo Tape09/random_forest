@@ -2,6 +2,7 @@ import numpy as np
 from scipy import stats
 from RandomForest import *
 from DataPool import *
+from Tree import tree
 
 import matplotlib.pyplot as plt
 

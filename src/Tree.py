@@ -278,13 +278,6 @@ class tree:  # { #UNDER CONSTRUCTION
         entropy = sum([- prob[i] * np.log2(prob[i]) for i in range(len(clas))])
         return entropy
 
-
-
-
-
-
-
-
     def GINI(self, data_left_idx, data_right_idx):
         return 0
 
