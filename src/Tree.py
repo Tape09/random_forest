@@ -49,7 +49,7 @@ class tree:  # { #UNDER CONSTRUCTION
 
 
     def predict(self, data_point):
-        return self.root.predict(data_point);
+        return self.root.predict(data_point, self.data_type);
 
     # TODO: VISUALIZATION??
     def visualize(self, bounds):
@@ -173,68 +173,63 @@ class tree:  # { #UNDER CONSTRUCTION
 
 
         feature_idxs = np.array(list(range(self.data.shape[1])));
-        random_features = np.array(rnd.choice( feature_idxs, self.F,replace = False));
-        #~ print(random_features)
+        for i in range(self.n_retry):
+            random_features = np.array(rnd.choice( feature_idxs, self.F,replace = False));
+            #~ print(random_features)
 
-        for feature in random_features:  # {			 # loop over features
-            if(self.data_type[feature]  == 0):  # {    # if numeric feature
-                order = np.argsort(self.data[ data_idxs,feature]);
-                sorted_data_idxs = data_idxs[order];
-                
-                for i in range(self.n_retry):
+            for feature in random_features:  # {			 # loop over features
+                if(self.data_type[feature]  == 0):  # {    # if numeric feature
+                    order = np.argsort(self.data[ data_idxs,feature]);
+                    sorted_data_idxs = data_idxs[order];
+                    
                     uq_values, uq_idx = np.unique(self.data[ sorted_data_idxs, feature],return_index = True);
-                    if(len(uq_values) > 1):
-                        break;
                         
-                if(len(uq_values) <= 1):
-                    # make it a leaf
-                    # check for -1 in grow_tree
-                    return -1, -1, -1, -1; 
+                    #~ print(uq_values)
+                    #~ print(uq_idx)
+                    #~ print(sorted_data_idxs)
+                    for split in range(len (uq_idx)-1):  # {       #loop over splits
+                        #print(uq_values)
+                        split_number = (uq_values[split] + uq_values [ split+1])/2
+                        data_left_idx = data_idxs[self.data[ data_idxs,feature] < split_number]
+                        data_right_idx = data_idxs[self.data[ data_idxs,feature] >= split_number]
+
+                        value = self.f_num( data_left_idx,data_right_idx);
+
+                        if(value > best_value):
+                            best_feature = feature;
+                            best_split_number = split_number;
+                            best_value = value;
+                            best_data_left_idx = data_left_idx;
+                            best_data_right_idx = data_right_idx;
+
+
+                    # }
+                # }	  
+                else:  # {             # if cat feature
                     
+                    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
+                    # TODO: CHECK IF ALL FEATURE VALUES ARE THE SAME, SOLVE IT SAME WAY AS FOR NUM #
+                    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
                     
-                #~ print(uq_values)
-                #~ print(uq_idx)
-                #~ print(sorted_data_idxs)
-                for split in range(len (uq_idx)-1):  # {       #loop over splits
-                    split_number = (uq_values[split] + uq_values [ split+1])/2
-                    data_left_idx = data_idxs[self.data[ data_idxs,feature] < split_number]
-                    data_right_idx = data_idxs[self.data[ data_idxs,feature] >= split_number]
+                    for split in range(self.n_classes[feature]):  # {	         #loop over splits
+                        idx_left = data_idxs[self.data[data_idxs, feature] != split]
+                        idx_right = data_idxs[self.data[data_idxs, feature] == split]
 
-                    value = self.f_num( data_left_idx,data_right_idx);
+                        value = self.f_cat(idx_left, idx_right);
 
-                    if(value > best_value):
-                        best_feature = feature;
-                        best_split_number = split_number;
-                        best_value = value;
-                        best_data_left_idx = data_left_idx;
-                        best_data_right_idx = data_right_idx;
+                        if(value > best_value):
+                            best_feature = feature;
+                            best_split_number = split;
+                            best_value = value;
+                            best_data_left_idx = idx_left;
+                            best_data_right_idx = idx_right;
 
 
-                # }
-            # }	  
-            else:  # {             # if cat feature
-                
-                # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
-                # TODO: CHECK IF ALL FEATURE VALUES ARE THE SAME, SOLVE IT SAME WAY AS FOR NUM #
-                # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
-                
-                for split in range(self.n_classes[feature]):  # {	         #loop over splits
-                    idx_left = data_idxs[self.data[data_idxs, feature] != split]
-                    idx_right = data_idxs[self.data[data_idxs, feature] == split]
-
-                    value = self.f_cat(idx_left, idx_right);
-
-                    if(value > best_value):
-                        best_feature = feature;
-                        best_split_number = split;
-                        best_value = value;
-                        best_data_left_idx = idx_left;
-                        best_data_right_idx = idx_right;
-
-
+                    # }
                 # }
             # }
-        # }
+            if not isinstance(best_data_left_idx,int) and not isinstance(best_data_right_idx,int):
+                break;
 
 
         return best_feature, best_split_number, best_data_left_idx, best_data_right_idx
@@ -255,6 +250,7 @@ class tree:  # { #UNDER CONSTRUCTION
         return 0
 
     def TEST(self, data_left_idx, data_right_idx):
+        #print(data_left_idx,data_right_idx,self.y)
         return -(np.var(self.y[data_left_idx]) + np.var(self.y[data_right_idx]))
 
 
