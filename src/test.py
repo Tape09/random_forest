@@ -6,6 +6,7 @@ from Tree import tree
 from testerror import *
 import matplotlib.pyplot as plt
 
+
 # TODO: test mixed features, test regession
 
 data = np.array([[0,0],[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[1,3],[1,4]])
@@ -13,13 +14,21 @@ y = np.array([0,0,0,1,1,0,0,1,1])
 data_type = np.zeros(9)
 y_type = 1
 n_classes = np.array([2,7])
+n_retry=10
 
 y0idx = y==0
 y0data = data[y0idx,:]
 y1idx = y==1
 y1data = data[y1idx,:]
 
-
+dp=DataPool('glass.txt')
+data=dp.data
+data_type=dp.attribute_type
+y=dp.class_v
+y_type=dp.cla_reg
+n_classes=np.zeros(data_type)
+forest=random_forest(data,data_type,y,y_type,n_classes,n_retry,number_of_trees=100,F=1,min_leaf_size=1)
+forest.calculateOutOfBagError()
 
 #~ plt.figure()
 #~ plt.plot(y0data[:,0],y0data[:,1],'go')

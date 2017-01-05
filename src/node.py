@@ -19,14 +19,14 @@ class node:  #{
         self.split_value = None;
         self.value = None;
 
-    def predict(self, data_point):  # {
+    def predict(self, data_point,data_type):  # {
         if (self.is_leaf()):  # {
             return self.value;
         else:
-            if (self.compare(data_point)):
-                return self.right.predict(data_point);
+            if (self.compare(data_point,data_type[self.split_feature])):
+                return self.right.predict(data_point,data_type);
             else:
-                return self.left.predict(data_point);
+                return self.left.predict(data_point,data_type);
                 # }
 
     # }

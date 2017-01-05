@@ -12,10 +12,10 @@ class DataPool:
         self.name_data = name_data
         self.datapath = self.__get_paths(name_data)
         self.rawdata = self.__readdata()  # without any processing
-        self.data = self.rawdata[:, 1:-1]  # only the data
+        self.data = np.array(self.rawdata[:, 1:-1],dtype=np.float)  # only the data
 
         [self.num_samples, self.num_features] = self.data.shape
-        self.class_v = self.rawdata[:, -1]
+        self.class_v = np.array(self.rawdata[:, -1],dtype=np.int)
         self.attribute_type = [0] * 9  # 0: numerical, 1: categorical
         self.cla_reg = 1  # Whether classification or regression, 1 is classification.
         self.num_class = 6
