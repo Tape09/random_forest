@@ -20,6 +20,7 @@ class DataPool:
         self.cla_reg = 1  # Whether classification or regression, 1 is classification.
         self.num_class = 6
 
+    # data_type, y, y_type, n_classes, min_leaf_size = 1, n_retry = 1,
     def __get_paths(self, data_name):
         '''
         The directory system:
