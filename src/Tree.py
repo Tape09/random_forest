@@ -18,6 +18,7 @@ import os
 # min_leaf_size = minimum number of samples to make a split
 # f_fum = the metric to be used for numerical
 # f_cat = the metric to be used for categorical
+
 class tree:  # { #UNDER CONSTRUCTION
     def __init__(self, data, data_type, y, y_type, n_classes, F = 1, min_leaf_size = 1 ,n_retry = 1,f_num = "VR", f_cat = "IG"):
         self.data = data;
@@ -247,7 +248,43 @@ class tree:  # { #UNDER CONSTRUCTION
     # these are member functions, so you can use self.data
     # should return a float
     def IG(self, data_left_idx, data_right_idx):
-        return 0
+        data = self.data
+        clas = data.get_classv()
+        before_index = np.concatenate((data_left_idx, data_right_idx), axis=0)
+        entropy_before = self.get_entropy(clas[before_index])
+        entropy_left_c = self.get_entropy(clas[data_left_idx])
+        entropy_right_c = self.get_entropy(clas[data_right_idx])
+
+        information_gain = entropy_before \
+                           - float(len(data_left_idx)) / (len(data_left_idx) + len(data_right_idx)) * entropy_left_c \
+                           - float(len(data_right_idx)) / (len(data_left_idx) + len(data_right_idx)) * entropy_right_c
+
+        return information_gain
+
+
+    def get_entropy(self, data):
+        '''
+        :param data: a list of class of the data
+        :return: the entropy of the data
+        '''
+        data = self.data
+        clas = list(np.unique(data))
+        prob = [0] * len(clas)
+        num_data = len(list(data))
+        for item in range(len(clas)):
+            prob[item] = list(data).count(clas[item])/float(num_data)
+            if prob[item] == 0:
+                return 0
+        entropy = sum([- prob[i] * np.log2(prob[i]) for i in range(len(clas))])
+        return entropy
+
+
+
+
+
+
+
+
     def GINI(self, data_left_idx, data_right_idx):
         return 0
 

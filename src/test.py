@@ -5,11 +5,7 @@ from DataPool import *
 
 import matplotlib.pyplot as plt
 
-
-
-
 # TODO: test mixed features, test regession
-
 
 data = np.array([[0,0],[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[1,3],[1,4]])
 y = np.array([0,0,0,1,1,0,0,1,1])
