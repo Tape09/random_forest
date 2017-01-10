@@ -9,9 +9,11 @@ class DataPool:
     """
     def __init__(self, name_data):
         self.name_data = name_data
-        self.data = self.__readdata(name_data+'_features.csv')  # only the data
+        self.data_tmp = self.__readdata(name_data+'_features.csv')  # only the data
+        self.data = np.array(self.data_tmp,dtype=np.float)
         [self.num_samples, self.num_features] = self.data.shape
-        self.class_v = self.__readdata(name_data+'_y.csv').flatten()
+        self.class_v_tmp = self.__readdata(name_data+'_y.csv').flatten()
+        self.class_v = np.array(self.class_v_tmp,dtype=np.float)
 
         '''
          numerical (real?) = 0

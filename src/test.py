@@ -25,7 +25,7 @@ y0data = data[y0idx,:]
 y1idx = y==1
 y1data = data[y1idx,:]
 
-dp=DataPool('glass.txt')
+dp=DataPool('glass')
 data=dp.data
 data_type=dp.attribute_type
 y=dp.class_v
