@@ -36,7 +36,7 @@ class node:  #{
 
     def compare(self, data_point, is_num):
         # helper function to do a split, based on is_num
-        if (is_num):
+        if (is_num==0):
             return data_point[self.split_feature] > self.split_value;
         else:
             return data_point[self.split_feature] == self.split_value;

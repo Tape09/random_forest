@@ -70,12 +70,13 @@ class tree:  # { #UNDER CONSTRUCTION
         left_leaf = False;
         right_leaf = False;
         #~ print(data_left_idx)
-        if(len(data_left_idx) <= self.min_leaf_size):  # are there less than min_leaf_size samples?
+        if(not isinstance(data_left_idx,int) and len(data_left_idx) <= self.min_leaf_size):  # are there less than min_leaf_size samples?
             # create leaf node
             node_left = node(self.y_type);
             if(self. y_type == 0):
                 node_left.value = np.mean(self.y[data_left_idx]);
             else:
+                #print(self.y, data_left_idx)
                 node_left.value = stats.mode(self.y[data_left_idx])[0][0];
             root.left = node_left;
             left_leaf = True;
@@ -89,7 +90,7 @@ class tree:  # { #UNDER CONSTRUCTION
 
 
 
-        if(len(data_right_idx) <= self.min_leaf_size)  : # are there less than min_leaf_size samples?
+        if(not isinstance(data_left_idx,int) and len(data_right_idx) <= self.min_leaf_size)  : # are there less than min_leaf_size samples?
             # create leaf node
             node_right = node(self.y_type);
             if(self.y_type == 0):
@@ -135,8 +136,6 @@ class tree:  # { #UNDER CONSTRUCTION
             
             # CHECK IF INVALID SPLIT (-1 RETURN)
             # MAKE LEAF NODE IF INVALID
-            
-            
             if(split_feature == -1):
                 node_left = node(self.y_type);
                 if(self.y_type == 0):
@@ -178,6 +177,7 @@ class tree:  # { #UNDER CONSTRUCTION
             #~ print(random_features)
 
             for feature in random_features:  # {			 # loop over features
+                #print(self.data_type)
                 if(self.data_type[feature]  == 0):  # {    # if numeric feature
                     order = np.argsort(self.data[ data_idxs,feature]);
                     sorted_data_idxs = data_idxs[order];

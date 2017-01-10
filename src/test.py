@@ -12,8 +12,10 @@ from DataPool import *
 
 
 data = np.array([[0,0],[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[1,3],[1,4]])
+#data = np.array([[0,0],[0,0]])
 y = np.array([0,0,0,1,1,0,0,1,1])
-data_type = np.zeros(9)
+#y = np.array([0,1])
+data_type = np.ones(2)
 y_type = 1
 n_classes = np.array([2,7])
 n_retry=10
