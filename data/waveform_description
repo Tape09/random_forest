@@ -1,0 +1,16 @@
+Data Set Information:
+
+Notes: 
+-- 3 classes of waves 
+-- 21 attributes, all of which include noise 
+-- See the book for details (49-55, 169) 
+-- waveform.data.Z contains 5000 instances
+
+
+Attribute Information:
+
+-- Each class is generated from a combination of 2 of 3 "base" waves 
+-- Each instance is generated f added noise (mean 0, variance 1) in each attribute 
+-- See the book for details (49-55, 169)
+
+

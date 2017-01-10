@@ -1,0 +1,4 @@
+NUMBER OF CLASSES: 4 
+OPEL, SAAB, BUS, VAN 
+
+In the vehicle_y.csv file, we mapped the "OPEL" labels to 0, "SAAB" labels to 1, "BUS" labels to 2 and "VAN" labels to 3.
