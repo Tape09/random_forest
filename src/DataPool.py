@@ -8,19 +8,41 @@ class DataPool:
     Take use of the methods to retrieve the data we need
     """
     def __init__(self, name_data):
-        # only for glass
         self.name_data = name_data
-        self.datapath = self.__get_paths(name_data)
-        self.rawdata = self.__readdata()  # without any processing
-        self.data = np.array(self.rawdata[:, 1:-1],dtype=np.float)  # only the data
-
+        self.data = self.__readdata(name_data+'_features.csv')  # only the data
         [self.num_samples, self.num_features] = self.data.shape
-        self.class_v = np.array(self.rawdata[:, -1],dtype=np.int)
-        self.attribute_type = [0] * 9  # 0: numerical, 1: categorical
-        self.cla_reg = 1  # Whether classification or regression, 1 is classification.
-        self.num_class = 6
+        self.class_v = self.__readdata(name_data+'_y.csv').flatten()
 
-    def __get_paths(self, data_name):
+        '''
+         numerical (real?) = 0
+         categorical (integer?) = 1
+        '''
+        attribute_type_str = self.__readdata(name_data+'_attribute_type.csv').flatten()
+        self.attribute_type = [int(x) for x in attribute_type_str]
+
+        '''
+        classification tree: cla_reg = 1
+        regression tree : cla_reg = 0
+        '''
+        self.cla_reg = int(self.__readdata(name_data+'_clas_reg_tree.csv').flatten()[0])
+
+        self.num_class_temp = []
+        self.num_class = []
+
+        for i in range(0, self.num_features):
+            if self.attribute_type[i] == 1:
+                for j in range(0, self.num_samples):
+                    self.num_class_temp.append(self.data[j][i])
+                self.num_class.append( len(list(set(self.num_class_temp))))
+                self.num_class_temp = []
+            else:
+                self.num_class.append(-1)
+
+
+
+
+    # data_type, y, y_type, n_classes, min_leaf_size = 1, n_retry = 1,
+    def __get_paths(self):
         '''
         The directory system:
         The project is in the file named "project"
@@ -33,10 +55,9 @@ class DataPool:
         src_path = os.getcwd()  # get the directory of src
         project_path = os.path.dirname(src_path)  # get the parent directory of src, that is project
         data_path = os.path.join(project_path, 'data')  # get the directory of data, which should be in the project
-        training_data_dir = os.path.join(data_path, data_name)  # now we are in the folder containing the training data
-        return training_data_dir
+        return data_path
 
-    def __readdata(self):
+    def __readdata(self, fileName):
         '''
         The directory system:
         The project is in the file named "project"
@@ -52,8 +73,9 @@ class DataPool:
         :param datapath: the path of the data
         :return: 'data' is ndarray
         '''
+        data_file = os.path.join(self.__get_paths(), fileName)  # now we are in the folder containing the training data
         data_l = []
-        with open(self.datapath, "r") as f:
+        with open(data_file, "r") as f:
             mylist = f.read().splitlines()
             for line in mylist:
                 currentline = line.split(",")
@@ -63,10 +85,24 @@ class DataPool:
 
 
 def demo():
-    data = DataPool('glass.txt')
+    data = DataPool('glass')
+    #data = DataPool('diabetes')
+    #data = DataPool('sonar')
+    #data = DataPool('ionosphere')
+    #data = DataPool('vehicle')
+    #data = DataPool('soybean')
+    #data = DataPool('german')
+    #data = DataPool('image_statlog')
+    #data = DataPool('ecoli')
+    #data = DataPool('votes')
+    #data = DataPool('liver')
+    #data = DataPool('letter-recognition')
+    #data = DataPool('sat.images.training')
+    #data = DataPool('sat.images.testing')
+    #data = DataPool('waveform')
     print (data.data)
     print (data.class_v)
     print (data.attribute_type)
     print (data.cla_reg)
     print (data.num_class)
-
+demo()
