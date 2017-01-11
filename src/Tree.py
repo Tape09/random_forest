@@ -110,10 +110,10 @@ class tree:  # { #UNDER CONSTRUCTION
 
         if(not right_leaf):  # {                #if right is not a leaf
             split_feature, split_number, data_left_idx1, data_right_idx1 = self.find_split(data_right_idx);
-            
+
             # CHECK IF INVALID SPLIT (-1 RETURN)
             # MAKE LEAF NODE IF INVALID
-            
+
             if(split_feature == -1):
                 node_right = node(self.y_type);
                 if(self.y_type == 0):
@@ -121,8 +121,8 @@ class tree:  # { #UNDER CONSTRUCTION
                 else:
                     node_right.value = stats.mode(self.y[data_right_idx])[0][0];
                 root.right = node_right;
-                
-            else:            
+
+            else:
                 node_right = node(self.data_type[split_feature]);
                 node_right.split_feature = split_feature;
                 node_right.split_value = split_number;
@@ -133,7 +133,7 @@ class tree:  # { #UNDER CONSTRUCTION
 
         if(not  left_leaf):  # {                     # if left is nto a leaf
             split_feature, split_number, data_left_idx1, data_right_idx1 = self.find_split(data_left_idx);
-            
+
             # CHECK IF INVALID SPLIT (-1 RETURN)
             # MAKE LEAF NODE IF INVALID
             if(split_feature == -1):
@@ -143,8 +143,8 @@ class tree:  # { #UNDER CONSTRUCTION
                 else:
                     node_left.value = stats.mode(self.y[data_left_idx])[0][0];
                 root.left = node_left;
-                
-            else:           
+
+            else:
                 node_left = node(self.data_type[split_feature]);
                 node_left.split_feature = split_feature;
                 node_left.split_value = split_number;
@@ -181,9 +181,9 @@ class tree:  # { #UNDER CONSTRUCTION
                 if(self.data_type[feature]  == 0):  # {    # if numeric feature
                     order = np.argsort(self.data[ data_idxs,feature]);
                     sorted_data_idxs = data_idxs[order];
-                    
+
                     uq_values, uq_idx = np.unique(self.data[ sorted_data_idxs, feature],return_index = True);
-                        
+
                     #~ print(uq_values)
                     #~ print(uq_idx)
                     #~ print(sorted_data_idxs)
@@ -204,13 +204,13 @@ class tree:  # { #UNDER CONSTRUCTION
 
 
                     # }
-                # }	  
+                # }
                 else:  # {             # if cat feature
-                    
+
                     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
                     # TODO: CHECK IF ALL FEATURE VALUES ARE THE SAME, SOLVE IT SAME WAY AS FOR NUM #
                     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
-                    
+
                     for split in range(self.n_classes[feature]):  # {	         #loop over splits
                         idx_left = data_idxs[self.data[data_idxs, feature] != split]
                         idx_right = data_idxs[self.data[data_idxs, feature] == split]
@@ -242,8 +242,19 @@ class tree:  # { #UNDER CONSTRUCTION
     # these are member functions, so you can use self.data
     # should return a float
     def IG(self, data_left_idx, data_right_idx):
+        # data = self.data
+        clas = self.y
+        before_index = np.concatenate((data_left_idx, data_right_idx), axis=0)
+        entropy_before = self.get_entropy(clas[before_index])
+        entropy_left_c = self.get_entropy(clas[data_left_idx])
+        entropy_right_c = self.get_entropy(clas[data_right_idx])
 
-        return 0
+        information_gain = entropy_before \
+                           - float(len(data_left_idx)) / (len(data_left_idx) + len(data_right_idx)) * entropy_left_c \
+                           - float(len(data_right_idx)) / (len(data_left_idx) + len(data_right_idx)) * entropy_right_c
+
+        return information_gain
+
 
     def get_entropy(self, data):
         '''
@@ -260,24 +271,35 @@ class tree:  # { #UNDER CONSTRUCTION
                 return 0
         entropy = sum([- prob[i] * np.log2(prob[i]) for i in range(len(clas))])
         return entropy
+
+
     # def IG(self, data_left_idx, data_right_idx):
     #     return 0
     def GINI(self, data_left_idx, data_right_idx):
         return 0
 
     def VR(self, data_left_idx, data_right_idx):
-        # data = self.data
-        clas = self.y
         before_index = np.concatenate((data_left_idx, data_right_idx), axis=0)
-        entropy_before = self.get_entropy(clas[before_index])
-        entropy_left_c = self.get_entropy(clas[data_left_idx])
-        entropy_right_c = self.get_entropy(clas[data_right_idx])
+        before_index_vr = self.vr_entropy(before_index)
+        vr_left = self.vr_entropy(data_left_idx)
+        vr_right = self.vr_entropy(data_right_idx)
 
-        information_gain = entropy_before \
-                           - float(len(data_left_idx)) / (len(data_left_idx) + len(data_right_idx)) * entropy_left_c \
-                           - float(len(data_right_idx)) / (len(data_left_idx) + len(data_right_idx)) * entropy_right_c
+        vr_final = before_index_vr - (vr_left + vr_right)
+        return vr_final
 
-        return information_gain
+
+
+    def vr_entropy(self, data):
+        sum = 0
+        sum_tmp = 0
+        for i in range(0 , len(self.y[data])):
+            for j in range(0, len(data)):
+                sum_tmp +=  (self.y[data][i] - self.y[data][j]) ** 2
+            sum = sum + (1/2 * sum_tmp)
+            sum_tmp = 0
+        vr = sum / (len(self.y[data])**2)
+        return vr
+
 
     def TEST(self, data_left_idx, data_right_idx):
         #print(data_left_idx,data_right_idx,self.y)
