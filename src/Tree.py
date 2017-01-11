@@ -31,13 +31,15 @@ class tree:  # { #UNDER CONSTRUCTION
         self.f_num = self.options[f_num];
         self.f_cat = self.options[f_cat];
         self.n_retry = n_retry;
+        
+        self.debug_root = dbg_node(np.array(list(range(len(data)))));
 
         split_feature, split_number, data_left_idx, data_right_idx = self.find_split(np.array(list(range(len(data)))));
 
         self.root = node(data_type[split_feature]);
         self.root.split_value = split_number;
         self.root.split_feature = split_feature;
-        self.grow_tree(self.root, data_left_idx, data_right_idx);
+        self.grow_tree(self.root, data_left_idx, data_right_idx,dbg = self.debug_root);
 
     # ~ init();
 
@@ -55,11 +57,11 @@ class tree:  # { #UNDER CONSTRUCTION
     def visualize(self, bounds):
         # return a list of pairs of points
         # each pair defines a seperation line
-        # bounds are the bounds for plotting, should be same as plt.axis(bounds)
+        # bounds are the bounds for plotting, should be same as plt.axis(bounds)        
         return 0;
 
 
-    def grow_tree(self, root, data_left_idx, data_right_idx):  # {
+    def grow_tree(self, root, data_left_idx, data_right_idx,dbg = None):  # {
         # recursive function for growing the tree
         # if all samples have same y - leaf node
         # if number of samples less than min_leaf_size - leaf node (should be called max leaf size)
@@ -69,88 +71,127 @@ class tree:  # { #UNDER CONSTRUCTION
         uq_right = np.unique(self.y[data_right_idx])
         left_leaf = False;
         right_leaf = False;
+        
+        
+                
         #~ print(data_left_idx)
-        if(not isinstance(data_left_idx,int) and len(data_left_idx) <= self.min_leaf_size):  # are there less than min_leaf_size samples?
+        if((not isinstance(data_left_idx,int)) and (len(data_left_idx) <= self.min_leaf_size)):  # are there less than min_leaf_size samples?
             # create leaf node
+            
             node_left = node(self.y_type);
-            if(self. y_type == 0):
+            if(self.y_type == 0):
                 node_left.value = np.mean(self.y[data_left_idx]);
             else:
-                #print(self.y, data_left_idx)
                 node_left.value = stats.mode(self.y[data_left_idx])[0][0];
             root.left = node_left;
+            
+            if(dbg != None):
+                dbg.left = dbg_node(data_left_idx);
+                            
             left_leaf = True;
 
         else:
-            if(len( uq_left) <= 1):  # is there only one unique y left? Means all are same class.
+            if(len( uq_left) <= 1):  # is there only one unique y left? Means all are same class.               
+                
                 node_left = node(self.y_type);
                 node_left.value = uq_left[0];
                 root.left = node_left;
+                
+                if(dbg != None):
+                    dbg.left = dbg_node(data_left_idx);
+                
+                
                 left_leaf = True;
 
 
 
-        if(not isinstance(data_left_idx,int) and len(data_right_idx) <= self.min_leaf_size)  : # are there less than min_leaf_size samples?
+        if((not isinstance(data_right_idx,int)) and (len(data_right_idx) <= self.min_leaf_size))  : # are there less than min_leaf_size samples?
             # create leaf node
+
             node_right = node(self.y_type);
             if(self.y_type == 0):
                 node_right.value = np.mean(self.y[data_right_idx]);
             else:
                 node_right.value = stats.mode(self.y[data_right_idx])[0][0];
             root.right = node_right;
+            
+            if(dbg != None):
+                dbg.right = dbg_node(data_right_idx);
+            
             right_leaf = True;
 
         else:
-            if(len(uq_right) <= 1):   # is there only one unique y left? Means all are same class.
+            if(len(uq_right) <= 1):   # is there only one unique y left? Means all are same class.              
+                
                 node_right = node(self.y_type);
                 node_right.value = uq_right[0];
                 root.right = node_right;
+                
+                if(dbg != None):
+                    dbg.right = dbg_node(data_right_idx);
+                
                 right_leaf = True;
 
 
         if(not right_leaf):  # {                #if right is not a leaf
             split_feature, split_number, data_left_idx1, data_right_idx1 = self.find_split(data_right_idx);
-
+            
             # CHECK IF INVALID SPLIT (-1 RETURN)
             # MAKE LEAF NODE IF INVALID
-
+            
             if(split_feature == -1):
+                    
                 node_right = node(self.y_type);
                 if(self.y_type == 0):
                     node_right.value = np.mean(self.y[data_right_idx]);
                 else:
                     node_right.value = stats.mode(self.y[data_right_idx])[0][0];
                 root.right = node_right;
-
-            else:
+                
+                if(dbg != None):
+                    dbg.right = dbg_node(data_right_idx);
+                    dbg.invalid = True;
+                
+            else:            
                 node_right = node(self.data_type[split_feature]);
                 node_right.split_feature = split_feature;
                 node_right.split_value = split_number;
+                
+                if(dbg != None):
+                    dbg.right = dbg_node(data_right_idx);
 
                 root.right = node_right;
-                self.grow_tree(root.right, data_left_idx1,data_right_idx1);
+                self.grow_tree(root.right, data_left_idx1,data_right_idx1,dbg.right);
         # }
 
-        if(not  left_leaf):  # {                     # if left is nto a leaf
+        if(not left_leaf):  # {                     # if left is nto a leaf
             split_feature, split_number, data_left_idx1, data_right_idx1 = self.find_split(data_left_idx);
-
+            
             # CHECK IF INVALID SPLIT (-1 RETURN)
             # MAKE LEAF NODE IF INVALID
-            if(split_feature == -1):
+            if(split_feature == -1): 
+                
                 node_left = node(self.y_type);
                 if(self.y_type == 0):
                     node_left.value = np.mean(self.y[data_left_idx]);
                 else:
                     node_left.value = stats.mode(self.y[data_left_idx])[0][0];
                 root.left = node_left;
-
-            else:
+                
+                if(dbg != None):
+                    dbg.left = dbg_node(data_left_idx);
+                    dbg.invalid = True;
+                
+            else:           
                 node_left = node(self.data_type[split_feature]);
                 node_left.split_feature = split_feature;
                 node_left.split_value = split_number;
 
+                if(dbg != None):
+                    dbg.left = dbg_node(data_left_idx);
+
                 root.left = node_left;
-                self.grow_tree(root.left, data_left_idx1,data_right_idx1);
+                self.grow_tree(root.left, data_left_idx1,data_right_idx1,dbg.left);
             # }
 
     # }
@@ -172,7 +213,7 @@ class tree:  # { #UNDER CONSTRUCTION
 
 
         feature_idxs = np.array(list(range(self.data.shape[1])));
-        for i in range(self.n_retry):
+        for i in range(self.n_retry): #{
             random_features = np.array(rnd.choice( feature_idxs, self.F,replace = False));
             #~ print(random_features)
 
@@ -181,9 +222,11 @@ class tree:  # { #UNDER CONSTRUCTION
                 if(self.data_type[feature]  == 0):  # {    # if numeric feature
                     order = np.argsort(self.data[ data_idxs,feature]);
                     sorted_data_idxs = data_idxs[order];
-
+                    
                     uq_values, uq_idx = np.unique(self.data[ sorted_data_idxs, feature],return_index = True);
-
+                    #~ if(len(uq_values) <= 1):
+                        #~ continue;
+                        
                     #~ print(uq_values)
                     #~ print(uq_idx)
                     #~ print(sorted_data_idxs)
@@ -204,13 +247,13 @@ class tree:  # { #UNDER CONSTRUCTION
 
 
                     # }
-                # }
+                # }	  
                 else:  # {             # if cat feature
-
+                    
                     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
                     # TODO: CHECK IF ALL FEATURE VALUES ARE THE SAME, SOLVE IT SAME WAY AS FOR NUM #
                     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
-
+                    
                     for split in range(self.n_classes[feature]):  # {	         #loop over splits
                         idx_left = data_idxs[self.data[data_idxs, feature] != split]
                         idx_right = data_idxs[self.data[data_idxs, feature] == split]
@@ -228,9 +271,9 @@ class tree:  # { #UNDER CONSTRUCTION
                     # }
                 # }
             # }
-            if not isinstance(best_data_left_idx,int) and not isinstance(best_data_right_idx,int):
+            if ((not isinstance(best_data_left_idx,int)) and (not isinstance(best_data_right_idx,int))):
                 break;
-
+        #}
 
         return best_feature, best_split_number, best_data_left_idx, best_data_right_idx
 
