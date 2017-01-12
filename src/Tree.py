@@ -323,13 +323,13 @@ class tree:  # { #UNDER CONSTRUCTION
 
     def VR(self, data_left_idx, data_right_idx):
         before_index = np.concatenate((data_left_idx, data_right_idx), axis=0)
-        before_index_vr = self.vr_entropy(before_index)
-        vr_left = self.vr_entropy(data_left_idx)
-        vr_right = self.vr_entropy(data_right_idx)
+        #before_index_vr = self.vr_entropy(before_index)
+        #vr_left = self.vr_entropy(data_left_idx)
+        #vr_right = self.vr_entropy(data_right_idx)
 
-        vr_final = before_index_vr - (vr_left + vr_right)
+        #vr_final = before_index_vr - (vr_left + vr_right)
+        vr_final = np.var(self.y[before_index]) - (np.var(self.y[data_left_idx]) + np.var(self.y[data_right_idx]))
         return vr_final
-
 
 
     def vr_entropy(self, data):
