@@ -45,6 +45,43 @@ class random_forest:  # {
             
         # print('mean', np.mean(np.array(error_list))) 
         return(np.mean(np.array(error_list)))
+        
+    def calculateOutOfBagTreeError(self):
+        error_list=[]
+        
+        for j in range(len(self.trees)):   
+            wrong = 0.0;
+            total = 0.0;
+            for i,tup in enumerate(zip(self.data,self.y)):
+                xi,yi=tup               
+                if i not in self.bags[j]:
+                    pred=self.trees[j].predict(xi)
+                    if pred != yi:
+                        wrong += 1
+                        
+                    total += 1
+            error_list.append(float(wrong)/total)
+    
+        return(np.mean(np.array(error_list)))
+    
+
+    def calculateTestError(self,data,y):
+        error_list=[]
+        
+        for i,tup in enumerate(zip(data,y)):
+            xi,yi=tup
+            predictions=[]
+            for j in range(len(self.trees)):                
+                pred=self.trees[j].predict(xi)
+                predictions.append(pred)
+            
+            if(self.y_type == 1):
+                error_list.append(0.0 if stats.mode(predictions)[0][0] == yi else 1.0);
+            else:
+                error_list.append((np.mean(predictions)-yi)**2);                
+            
+        # print('mean', np.mean(np.array(error_list))) 
+        return(np.mean(np.array(error_list)))
             
 
     # Calculated the strength and correlation as described in the paper by breiman.

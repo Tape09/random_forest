@@ -250,9 +250,6 @@ class tree:  # { #UNDER CONSTRUCTION
                 # }	  
                 else:  # {             # if cat feature
                     
-                    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
-                    # TODO: CHECK IF ALL FEATURE VALUES ARE THE SAME, SOLVE IT SAME WAY AS FOR NUM #
-                    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
                     
                     for split in range(self.n_classes[feature]):  # {	         #loop over splits
                         idx_left = data_idxs[self.data[data_idxs, feature] != split]
