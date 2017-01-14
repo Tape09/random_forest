@@ -41,3 +41,15 @@ class node:  #{
         else:
             return data_point[self.split_feature] == self.split_value;
 #}
+
+
+class dbg_node:
+    def __init__(self,idxs):
+        self.right = None;
+        self.left = None;
+        self.idxs = idxs;
+        self.invalid = False;
+        
+        
+    def is_leaf(self):
+        return self.right == None and self.left == None
