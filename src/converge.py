@@ -47,48 +47,62 @@ y_type=dp.cla_reg
 n_classes=dp.num_class
 
 
+max_iter = 5;
 
-n_iterations = 100
+oob_vars = []
+oob_tree_vars = []
+test_vars = []
 
-oob_errs = []
-oob_tree_errs = []
-test_errs = []
-for i in range(n_iterations):
-    n = data.shape[0]
-    n_train = int(n*0.9)
-    n_test = n - n_train;
+for k in range(5):
+    print(k)
+    oob_errs1 = []
+    oob_tree_errs1 = []
+    test_errs1 = []
+    for j in range(max_iter):
+        oob_errs = []
+        oob_tree_errs = []
+        test_errs = []
+        for i in range(j):
+            n = data.shape[0]
+            n_train = int(n*0.9)
+            n_test = n - n_train;
 
-    test_idxs = rnd.choice(np.arange(n),n_test,replace=False)
-    
-    train_mask = np.ones(n,dtype=bool)
-    train_mask[test_idxs] = False
-    
-    data_train = data[train_mask,:]
-    y_train = y[train_mask]
-    data_test = data[~train_mask,:]
-    y_test = y[~train_mask]
-    
-    #~ forest=random_forest(data_train,data_type,y_train,y_type,n_classes,n_retry,number_of_trees=100,F=1,min_leaf_size=1,f_num = "IG", f_cat = "IG")
-    forest=random_forest(data_train,data_type,y_train,y_type,n_classes,n_retry,number_of_trees=100,F=1,rc=False,min_leaf_size=1,f_num = "IG", f_cat = "IG")    
-    
-    oob_errs.append(forest.calculateOutOfBagError())
-    oob_tree_errs.append(forest.calculateOutOfBagTreeError())
-    test_errs.append(forest.calculateTestError(data_test,y_test))
-    
-    sys.stdout.flush()
-    sys.stdout.write("\r" + str(100*float(i+1)/n_iterations) + "%")
-    
-    
-print()
+            test_idxs = rnd.choice(np.arange(n),n_test,replace=False)
+            
+            train_mask = np.ones(n,dtype=bool)
+            train_mask[test_idxs] = False
+            
+            data_train = data[train_mask,:]
+            y_train = y[train_mask]
+            data_test = data[~train_mask,:]
+            y_test = y[~train_mask]
+            
+            #~ forest=random_forest(data_train,data_type,y_train,y_type,n_classes,n_retry,number_of_trees=100,F=1,min_leaf_size=1,f_num = "IG", f_cat = "IG")
+            forest=random_forest(data_train,data_type,y_train,y_type,n_classes,n_retry,number_of_trees=100,F=1,rc=False,min_leaf_size=1,f_num = "IG", f_cat = "IG")    
+            
+            oob_errs.append(forest.calculateOutOfBagError())
+            oob_tree_errs.append(forest.calculateOutOfBagTreeError())
+            test_errs.append(forest.calculateTestError(data_test,y_test))
+            
+            sys.stdout.flush()
+            sys.stdout.write("\r" + str(100*float(i+1)/j) + "%")   
+        print()
 
-oob_errs = np.array(oob_errs)
-oob_tree_errs = np.array(oob_tree_errs)
-test_errs = np.array(test_errs)
+        oob_err = np.mean(np.array(oob_errs))
+        oob_tree_err = np.mean(np.array(oob_tree_errs))
+        test_err = np.mean(np.array(test_errs))
+        
+        oob_errs1.append(oob_err)
+        oob_tree_errs1.append(oob_tree_err)
+        test_errs1.append(test_err)
+    
+    oob_vars.append(np.var(oob_errs))
+    oob_tree_vars.append(np.var(oob_tree_errs))
+    test_vars.append(np.var(oob_test_errs))
+    
 
-print("dataset:",dataset)
-print("Out-Of-Bag Error:",np.mean(oob_errs))
-print("Out-Of-Bag Tree Error:",np.mean(oob_tree_errs))
-print("Test Error:",np.mean(test_errs))
+    
+
 
 
 

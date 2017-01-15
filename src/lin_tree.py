@@ -18,27 +18,40 @@ import os
 # min_leaf_size = minimum number of samples to make a split
 # f_fum = the metric to be used for numerical
 # f_cat = the metric to be used for categorical
-class tree:  # { #UNDER CONSTRUCTION
-    def __init__(self, data, data_type, y, y_type, n_classes, F = 1, min_leaf_size = 1 ,n_retry = 1,f_num = "VR", f_cat = "IG"):
+class lin_tree:  # { #UNDER CONSTRUCTION
+    def __init__(self, data, data_type, y, y_type, n_classes, F = 1, L = 2, min_leaf_size = 1 ,n_retry = 1,f_num = "VR", f_cat = "IG"):
         self.data = data;
-        self.data_type = data_type;
-        self.y = y;
+        self.data_type = np.array(data_type);
+        self.y = np.array(y);
         self.y_type = y_type;
         self.n_classes = n_classes;
         self.min_leaf_size = min_leaf_size;
         self.F = F;
+        self.L = L;
         self.options = {"VR" : self.VR, "IG" : self.IG, "GINI" : self.GINI, "TEST" : self.TEST}
         self.f_num = self.options[f_num];
         self.f_cat = self.options[f_cat];
         self.n_retry = n_retry;
+        self.feature_p = np.array(n_classes)
+        self.feature_p[self.feature_p == -1] = 2
+        self.feature_p = self.feature_p - 1
+        self.feature_p = self.feature_p / np.sum(self.feature_p);
+        
+        self.means = np.mean(self.data,0)
+        self.sds = np.std(self.data,0)      
+        
+        self.means[self.data_type == 1] = 0
+        self.sds[self.data_type == 1] = 1
+
+        self.sds[self.sds == 0] = 1;
         
         self.debug_root = dbg_node(np.array(list(range(len(data)))));
-
-        split_feature, split_number, data_left_idx, data_right_idx = self.find_split(np.array(list(range(len(data)))));
-
-        self.root = node(data_type[split_feature]);
+        
+        split_features, split_number, data_left_idx, data_right_idx, split_coefs = self.find_split(np.array(list(range(len(data)))));
+        self.root = lin_node();
         self.root.split_value = split_number;
-        self.root.split_feature = split_feature;
+        self.root.split_features = split_features;
+        self.root.split_coefs = split_coefs
         self.grow_tree(self.root, data_left_idx, data_right_idx,dbg = self.debug_root);
 
     # ~ init();
@@ -51,7 +64,18 @@ class tree:  # { #UNDER CONSTRUCTION
 
 
     def predict(self, data_point):
-        return self.root.predict(data_point, self.data_type);
+        dp = np.copy(data_point);
+        for i in range(len(data_point)):
+            dp[i] = (dp[i] - self.means[i]) / self.sds[i]
+        
+        return self.root.predict(dp);
+        
+    def predict_all(self,data):
+        predictions = [];
+        for i in range(data.shape[0]):            
+            predictions.append(self.predict(data[i,:]))        
+        
+        return predictions;
 
     # TODO: VISUALIZATION??
     def visualize(self, bounds):
@@ -78,7 +102,7 @@ class tree:  # { #UNDER CONSTRUCTION
         if((not isinstance(data_left_idx,int)) and (len(data_left_idx) <= self.min_leaf_size)):  # are there less than min_leaf_size samples?
             # create leaf node
             
-            node_left = node(self.y_type);
+            node_left = lin_node();
             if(self.y_type == 0):
                 node_left.value = np.mean(self.y[data_left_idx]);
             else:
@@ -93,7 +117,7 @@ class tree:  # { #UNDER CONSTRUCTION
         else:
             if(len( uq_left) <= 1):  # is there only one unique y left? Means all are same class.               
                 
-                node_left = node(self.y_type);
+                node_left = lin_node();
                 node_left.value = uq_left[0];
                 root.left = node_left;
                 
@@ -103,14 +127,10 @@ class tree:  # { #UNDER CONSTRUCTION
                 
                 left_leaf = True;
 
-        
-
         if((not isinstance(data_right_idx,int)) and (len(data_right_idx) <= self.min_leaf_size))  : # are there less than min_leaf_size samples?
-            # create leaf node
-            
-            
+            # create leaf node            
 
-            node_right = node(self.y_type);
+            node_right = lin_node();
             if(self.y_type == 0):
                 node_right.value = np.mean(self.y[data_right_idx]);
             else:
@@ -125,7 +145,7 @@ class tree:  # { #UNDER CONSTRUCTION
         else:
             if(len(uq_right) <= 1):   # is there only one unique y left? Means all are same class.              
                 
-                node_right = node(self.y_type);
+                node_right = lin_node();
                 node_right.value = uq_right[0];
                 root.right = node_right;
                 
@@ -136,14 +156,14 @@ class tree:  # { #UNDER CONSTRUCTION
 
 
         if(not right_leaf):  # {                #if right is not a leaf
-            split_feature, split_number, data_left_idx1, data_right_idx1 = self.find_split(data_right_idx);
+            split_features, split_number, data_left_idx1, data_right_idx1, split_coefs = self.find_split(data_right_idx);
             
             # CHECK IF INVALID SPLIT (-1 RETURN)
             # MAKE LEAF NODE IF INVALID
-            
-            if(split_feature == -1):
+ 
+            if(isinstance(split_features,int)):
                     
-                node_right = node(self.y_type);
+                node_right = lin_node();
                 if(self.y_type == 0):
                     node_right.value = np.mean(self.y[data_right_idx]);
                 else:
@@ -155,9 +175,10 @@ class tree:  # { #UNDER CONSTRUCTION
                     dbg.invalid = True;
                 
             else:            
-                node_right = node(self.data_type[split_feature]);
-                node_right.split_feature = split_feature;
+                node_right = lin_node();
+                node_right.split_features = split_features;
                 node_right.split_value = split_number;
+                node_right.split_coefs = split_coefs;
                 
                 if(dbg != None):
                     dbg.right = dbg_node(data_right_idx);
@@ -167,13 +188,13 @@ class tree:  # { #UNDER CONSTRUCTION
         # }
 
         if(not left_leaf):  # {                     # if left is nto a leaf
-            split_feature, split_number, data_left_idx1, data_right_idx1 = self.find_split(data_left_idx);
+            split_features, split_number, data_left_idx1, data_right_idx1, split_coefs = self.find_split(data_left_idx);
             
             # CHECK IF INVALID SPLIT (-1 RETURN)
             # MAKE LEAF NODE IF INVALID
-            if(split_feature == -1): 
+            if(isinstance(split_features,int)): 
                 
-                node_left = node(self.y_type);
+                node_left = lin_node();
                 if(self.y_type == 0):
                     node_left.value = np.mean(self.y[data_left_idx]);
                 else:
@@ -185,9 +206,10 @@ class tree:  # { #UNDER CONSTRUCTION
                     dbg.invalid = True;
                 
             else:           
-                node_left = node(self.data_type[split_feature]);
-                node_left.split_feature = split_feature;
+                node_left = lin_node();
+                node_left.split_features = split_features;
                 node_left.split_value = split_number;
+                node_left.split_coefs = split_coefs;
 
                 if(dbg != None):
                     dbg.left = dbg_node(data_left_idx);
@@ -207,85 +229,83 @@ class tree:  # { #UNDER CONSTRUCTION
         # splits are the feature classes for categorical
         # splits are between each feature value for numeric
         # returns best feature, best split, and the indexes of the data that are split to the left/right
-        best_feature = -1;
+        best_features = -1;
+        best_coefs = -1;
         best_split_number = -1;
         best_value = -999999999;
         best_data_left_idx = -1;
         best_data_right_idx = -1;
 
+        
 
 
         #~ print("splitting:",len(data_idxs))
 
         feature_idxs = np.array(list(range(self.data.shape[1])));
-        for i in range(self.n_retry): #{
-            random_features = np.array(rnd.choice( feature_idxs, self.F,replace = False));
-            #~ print(random_features)
-
-            for feature in random_features:  # {			 # loop over features
+        for i in range(self.F): #{
+            coefs = rnd.uniform(-1,1,self.L)
+            
+            for r in range(self.n_retry):           
+                random_features = np.array(rnd.choice( feature_idxs, self.L,replace = False, p = self.feature_p));                       
                 
-                #~ print(feature,"uq",len(np.unique(self.data[data_idxs, feature])))
+                new_data = self.data[:,random_features]
                 
-                if(len(np.unique(self.data[data_idxs, feature])) <= 1):
-                    #~ print()
-                    continue;
+                for j in range(len(random_features)):
+                    new_data[:,j] = (new_data[:,j] - self.means[random_features[j]]) / self.sds[random_features[j]]      
+                            
+                new_feature = np.sum(new_data*coefs,1)
+                if(len(np.unique(new_feature[data_idxs]))>1):
+                    break
+            
+            if(len(np.unique(new_feature[data_idxs]))==1):
+                continue;
+          
+            #~ print("features:",random_features)
+            #~ print("coefs:",coefs)
+            
+            
+            
+            
+          
+            for f in random_features:
+                if(self.data_type[f] == 1):
+                    subset = rnd.choice(self.n_classes[f],self.n_classes[f],replace=True);
+                    subset = np.unique(subset);
                     
+                    
+                    new_feature[np.in1d(self.data[:,f],subset)] = 1; 
+                    new_feature[np.invert(np.in1d(self.data[:,f],subset))] = 0; 
+            
+            #~ print("new:",new_feature)
+            
+            order = np.argsort(new_feature[data_idxs]);
+            sorted_feature = (new_feature[data_idxs])[order];
+            
+            uq_values, uq_idx = np.unique(sorted_feature,return_index = True);
+            
+            for split in range(len (uq_idx)-1):
+                split_number = (uq_values[split] + uq_values [ split+1])/2
+                data_left_idx = data_idxs[new_feature[data_idxs] < split_number]
+                data_right_idx = data_idxs[new_feature[data_idxs] >= split_number]
                 
-                #print(self.data_type)
-                if(self.data_type[feature]  == 0):  # {    # if numeric feature
-                    order = np.argsort(self.data[ data_idxs,feature]);
-                    sorted_data_idxs = data_idxs[order];
-                    
-                    uq_values, uq_idx = np.unique(self.data[ sorted_data_idxs, feature],return_index = True);
-                    #~ if(len(uq_values) <= 1):
-                        #~ continue;
-                        
-                    #~ print(uq_values)
-                    #~ print(uq_idx)
-                    #~ print(sorted_data_idxs)
-                    for split in range(len (uq_idx)-1):  # {       #loop over splits
-                        #print(uq_values)
-                        split_number = (uq_values[split] + uq_values [ split+1])/2
-                        data_left_idx = data_idxs[self.data[ data_idxs,feature] < split_number]
-                        data_right_idx = data_idxs[self.data[ data_idxs,feature] >= split_number]
+                
+                if(len(data_left_idx)==0 or len(data_left_idx)==0):
+                    print(uq_values)
+                
+                
+                value = self.f_num( data_left_idx,data_right_idx);
 
-                        value = self.f_num( data_left_idx,data_right_idx);
-
-                        if(value > best_value):
-                            best_feature = feature;
-                            best_split_number = split_number;
-                            best_value = value;
-                            best_data_left_idx = data_left_idx;
-                            best_data_right_idx = data_right_idx;
-
-
-                    # }
-                # }	  
-                else:  # {             # if cat feature
-                    
-                    
-                    for split in range(self.n_classes[feature]):  # {	         #loop over splits
-                        idx_left = data_idxs[self.data[data_idxs, feature] != split]
-                        idx_right = data_idxs[self.data[data_idxs, feature] == split]
-                        
-                        #~ print("left",split,idx_left)
-                        #~ print("right",split,idx_right)
-
-                        value = self.f_cat(idx_left, idx_right);
-
-                        if(value > best_value):
-                            best_feature = feature;
-                            best_split_number = split;
-                            best_value = value;
-                            best_data_left_idx = idx_left;
-                            best_data_right_idx = idx_right;
-
-
-                    # }
-                # }
-            # }
-            if ((not isinstance(best_data_left_idx,int)) and (not isinstance(best_data_right_idx,int))):
-                break;
+                if(value > best_value):
+                    best_features = random_features;
+                    best_coefs = coefs;
+                    best_split_number = split_number;
+                    best_value = value;
+                    best_data_left_idx = data_left_idx;
+                    best_data_right_idx = data_right_idx;
+            
+            
+            #~ if ((not isinstance(best_data_left_idx,int)) and (not isinstance(best_data_right_idx,int))):
+                #~ break;
         #}
         
         #~ print("split:",best_split_number)
@@ -295,7 +315,7 @@ class tree:  # { #UNDER CONSTRUCTION
         #~ print("y_right:",np.unique(self.y[best_data_right_idx]))
         #~ print()
 
-        return best_feature, best_split_number, best_data_left_idx, best_data_right_idx
+        return best_features, best_split_number, best_data_left_idx, best_data_right_idx, best_coefs;
 
     # }
 

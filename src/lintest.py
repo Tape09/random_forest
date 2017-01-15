@@ -5,6 +5,7 @@ from DataPool import *
 import numpy.random as rnd;
 from sklearn.ensemble import RandomForestClassifier
 import matplotlib.pyplot as plt
+from lin_tree import *
 import sys
 import time
 
@@ -48,7 +49,7 @@ n_classes=dp.num_class
 
 
 
-n_iterations = 100
+n_iterations = 15
 
 oob_errs = []
 oob_tree_errs = []
@@ -68,8 +69,7 @@ for i in range(n_iterations):
     data_test = data[~train_mask,:]
     y_test = y[~train_mask]
     
-    #~ forest=random_forest(data_train,data_type,y_train,y_type,n_classes,n_retry,number_of_trees=100,F=1,min_leaf_size=1,f_num = "IG", f_cat = "IG")
-    forest=random_forest(data_train,data_type,y_train,y_type,n_classes,n_retry,number_of_trees=100,F=1,rc=False,min_leaf_size=1,f_num = "IG", f_cat = "IG")    
+    forest=random_forest(data_train,data_type,y_train,y_type,n_classes,n_retry,number_of_trees=100,F=2,rc=True,min_leaf_size=1,f_num = "IG", f_cat = "IG",L=3)
     
     oob_errs.append(forest.calculateOutOfBagError())
     oob_tree_errs.append(forest.calculateOutOfBagTreeError())
