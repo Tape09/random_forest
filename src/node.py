@@ -70,6 +70,8 @@ class lin_node:  #{
         self.split_coefs = None;
         self.split_value = None;
         self.value = None;
+        self.split_subsets = None
+        self.data_type = None
 
     def predict(self, data_point):  # {
         if (self.is_leaf()):  # {
@@ -87,6 +89,28 @@ class lin_node:  #{
         return (self.left == None and self.right == None)
 
     def compare(self, data_point):
-        return np.sum(self.split_coefs*data_point[self.split_features]) > self.split_value;
+        new_data = np.copy(data_point);
+             
+        #~ print(new_data)
+        #~ print(self.split_features)
+        #~ print(self.split_subsets)
+        
+        for j,f in enumerate(self.split_features):
+            if(self.data_type[f] == 1):                
+                if(new_data[f] in self.split_subsets[j]):
+                    #~ print("asdf")
+                    new_data[f] = 1;
+                else:
+                    new_data[f] = 0;
+                    
+        #~ print(new_data)
+        #~ print()
+        
+        new_feature = new_data[self.split_features]
+        new_feature = np.sum(self.split_coefs*new_feature)  
+        
+        #~ print(new_feature)
+        
+        return new_feature > self.split_value;
 
 #}

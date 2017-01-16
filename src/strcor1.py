@@ -108,8 +108,8 @@ for F in range(1,15):
     
     
 plt.figure()
-plt.plot(np.arange(15)+1,final_oob,color = "black")
-plt.plot(np.arange(15)+1,final_test, color = "red")
+plt.plot(np.arange(50)+1,final_oob,color = "black")
+plt.plot(np.arange(50)+1,final_test, color = "red")
 plt.xlabel("F")
 plt.ylabel("Error")
 plt.title("OOB and test error vs F")
@@ -118,8 +118,8 @@ plt.savefig("ooberr1.png")
 
 
 plt.figure()
-plt.plot(np.arange(15)+1,final_str,color = "black")
-plt.plot(np.arange(15)+1,final_cor, color = "red")
+plt.plot(np.arange(50)+1,final_str,color = "black")
+plt.plot(np.arange(50)+1,final_cor, color = "red")
 plt.xlabel("F")
 plt.ylabel("Error")
 plt.title("OOB and test error vs F")

@@ -1,0 +1,66 @@
+dataset: glass
+Out-Of-Bag Error: 0.252291666667
+Out-Of-Bag Tree Error: 0.401903177705
+Test Error: 0.238181818182
+
+dataset: sonar
+Out-Of-Bag Error: 0.188021390374
+Out-Of-Bag Tree Error: 0.337622982808
+Test Error: 0.154285714286
+
+dataset: breast-cancer
+Out-Of-Bag Error: 0.0300158982512
+Out-Of-Bag Tree Error: 0.0580946627089
+Test Error: 0.028
+
+dataset: liver
+Out-Of-Bag Error: 0.284
+Out-Of-Bag Tree Error: 0.395473749346
+Test Error: 0.273142857143
+
+dataset: german
+Out-Of-Bag Error: 0.242
+Out-Of-Bag Tree Error: 0.338483267465
+Test Error: 0.2352
+
+dataset: votes
+Out-Of-Bag Error: 0.420971867008
+Out-Of-Bag Tree Error: 0.475621889635
+Test Error: 0.40303030303
+
+dataset: diabetes
+Out-Of-Bag Error: 0.242373371925
+Out-Of-Bag Tree Error: 0.320521352756
+Test Error: 0.225974025974
+
+dataset: vehicle
+Out-Of-Bag Error: 0.246202365309
+Out-Of-Bag Tree Error: 0.378155001761
+Test Error: 0.233882352941
+
+dataset: ecoli
+Out-Of-Bag Error: 0.138631346578
+Out-Of-Bag Tree Error: 0.244903382946
+Test Error: 0.109803921569
+
+dataset: ionosphere
+Out-Of-Bag Error: 0.0569312169312
+Out-Of-Bag Tree Error: 0.157378192994
+Test Error: 0.0555555555556
+
+dataset: waveform
+Out-Of-Bag Error: 0.149422222222
+Out-Of-Bag Tree Error: 0.295301247401
+Test Error: 0.1508
+
+dataset: image_statlog
+Out-Of-Bag Error: 0.0219336219336
+Out-Of-Bag Tree Error: 0.0840260075594
+Test Error: 0.0227994227994
+
+dataset: sat.images.training
+Out-Of-Bag Error: 0.0982711099975
+Out-Of-Bag Tree Error: 0.185851806149
+Test Error: 0.0888888888889
+
+

@@ -48,7 +48,7 @@ n_classes=dp.num_class
 
 
 
-n_iterations = 100
+n_iterations = 25
 
 oob_errs = []
 oob_tree_errs = []
@@ -69,7 +69,7 @@ for i in range(n_iterations):
     y_test = y[~train_mask]
     
     #~ forest=random_forest(data_train,data_type,y_train,y_type,n_classes,n_retry,number_of_trees=100,F=1,min_leaf_size=1,f_num = "IG", f_cat = "IG")
-    forest=random_forest(data_train,data_type,y_train,y_type,n_classes,n_retry,number_of_trees=100,F=1,rc=False,min_leaf_size=1,f_num = "IG", f_cat = "IG")    
+    forest=random_forest(data_train,data_type,y_train,y_type,n_classes,n_retry,number_of_trees=100,F=1,rc=False,min_leaf_size=5,f_num = "VR", f_cat = "VR")    
     
     oob_errs.append(forest.calculateOutOfBagError())
     oob_tree_errs.append(forest.calculateOutOfBagTreeError())

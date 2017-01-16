@@ -47,11 +47,13 @@ class lin_tree:  # { #UNDER CONSTRUCTION
         
         self.debug_root = dbg_node(np.array(list(range(len(data)))));
         
-        split_features, split_number, data_left_idx, data_right_idx, split_coefs = self.find_split(np.array(list(range(len(data)))));
+        split_features, split_number, data_left_idx, data_right_idx, split_coefs, split_subsets = self.find_split(np.array(list(range(len(data)))));
         self.root = lin_node();
         self.root.split_value = split_number;
         self.root.split_features = split_features;
         self.root.split_coefs = split_coefs
+        self.root.split_subsets = split_subsets
+        self.root.data_type = self.data_type;
         self.grow_tree(self.root, data_left_idx, data_right_idx,dbg = self.debug_root);
 
     # ~ init();
@@ -64,10 +66,12 @@ class lin_tree:  # { #UNDER CONSTRUCTION
 
 
     def predict(self, data_point):
+        #~ print("datapoint: ", data_point)
         dp = np.copy(data_point);
+        
         for i in range(len(data_point)):
             dp[i] = (dp[i] - self.means[i]) / self.sds[i]
-        
+        #~ print("dp: ", dp)
         return self.root.predict(dp);
         
     def predict_all(self,data):
@@ -109,6 +113,12 @@ class lin_tree:  # { #UNDER CONSTRUCTION
                 node_left.value = stats.mode(self.y[data_left_idx])[0][0];
             root.left = node_left;
             
+            #~ print("idxs,truth,predict:",data_left_idx,self.y[data_left_idx],node_left.value)
+            
+            
+            #~ print(node_left.value)
+            #~ print(node_left.value)
+            
             if(dbg != None):
                 dbg.left = dbg_node(data_left_idx);
                             
@@ -124,6 +134,7 @@ class lin_tree:  # { #UNDER CONSTRUCTION
                 if(dbg != None):
                     dbg.left = dbg_node(data_left_idx);
                 
+                #~ print("idxs,truth,predict:",data_left_idx,self.y[data_left_idx],node_left.value)
                 
                 left_leaf = True;
 
@@ -140,6 +151,8 @@ class lin_tree:  # { #UNDER CONSTRUCTION
             if(dbg != None):
                 dbg.right = dbg_node(data_right_idx);
             
+            #~ print("idxs,truth,predict:",data_right_idx,self.y[data_right_idx],node_right.value)
+            
             right_leaf = True;
 
         else:
@@ -151,12 +164,14 @@ class lin_tree:  # { #UNDER CONSTRUCTION
                 
                 if(dbg != None):
                     dbg.right = dbg_node(data_right_idx);
+                    
+                #~ print("idxs,truth,predict:",data_right_idx,self.y[data_right_idx],node_right.value)
                 
                 right_leaf = True;
 
 
         if(not right_leaf):  # {                #if right is not a leaf
-            split_features, split_number, data_left_idx1, data_right_idx1, split_coefs = self.find_split(data_right_idx);
+            split_features, split_number, data_left_idx1, data_right_idx1, split_coefs, split_subsets = self.find_split(data_right_idx);
             
             # CHECK IF INVALID SPLIT (-1 RETURN)
             # MAKE LEAF NODE IF INVALID
@@ -170,15 +185,20 @@ class lin_tree:  # { #UNDER CONSTRUCTION
                     node_right.value = stats.mode(self.y[data_right_idx])[0][0];
                 root.right = node_right;
                 
+                #~ print("INVALID: idxs,truth,predict:",data_right_idx,self.y[data_right_idx],node_right.value)
+                
                 if(dbg != None):
                     dbg.right = dbg_node(data_right_idx);
                     dbg.invalid = True;
+                    
                 
             else:            
                 node_right = lin_node();
                 node_right.split_features = split_features;
                 node_right.split_value = split_number;
                 node_right.split_coefs = split_coefs;
+                node_right.split_subsets = split_subsets;
+                node_right.data_type = self.data_type;
                 
                 if(dbg != None):
                     dbg.right = dbg_node(data_right_idx);
@@ -188,7 +208,7 @@ class lin_tree:  # { #UNDER CONSTRUCTION
         # }
 
         if(not left_leaf):  # {                     # if left is nto a leaf
-            split_features, split_number, data_left_idx1, data_right_idx1, split_coefs = self.find_split(data_left_idx);
+            split_features, split_number, data_left_idx1, data_right_idx1, split_coefs, split_subsets = self.find_split(data_left_idx);
             
             # CHECK IF INVALID SPLIT (-1 RETURN)
             # MAKE LEAF NODE IF INVALID
@@ -201,6 +221,8 @@ class lin_tree:  # { #UNDER CONSTRUCTION
                     node_left.value = stats.mode(self.y[data_left_idx])[0][0];
                 root.left = node_left;
                 
+                #~ print("INVALID: idxs,truth,predict:",data_left_idx,self.y[data_left_idx],node_left.value)
+                
                 if(dbg != None):
                     dbg.left = dbg_node(data_left_idx);
                     dbg.invalid = True;
@@ -210,6 +232,8 @@ class lin_tree:  # { #UNDER CONSTRUCTION
                 node_left.split_features = split_features;
                 node_left.split_value = split_number;
                 node_left.split_coefs = split_coefs;
+                node_left.split_subsets = split_subsets;
+                node_left.data_type = self.data_type;
 
                 if(dbg != None):
                     dbg.left = dbg_node(data_left_idx);
@@ -235,7 +259,7 @@ class lin_tree:  # { #UNDER CONSTRUCTION
         best_value = -999999999;
         best_data_left_idx = -1;
         best_data_right_idx = -1;
-
+        best_subsets = [];
         
 
 
@@ -250,38 +274,60 @@ class lin_tree:  # { #UNDER CONSTRUCTION
                 
                 new_data = self.data[:,random_features]
                 
+                
+                
                 for j in range(len(random_features)):
                     new_data[:,j] = (new_data[:,j] - self.means[random_features[j]]) / self.sds[random_features[j]]      
-                            
+                
+                subsets = [0]*len(random_features);
+                
+                
+                
+                
+                #~ print("old_data",new_data)
+          
+                for j,f in enumerate(random_features):
+                    #~ print("f",f)
+                    if(self.data_type[f] == 1):
+                        subset = rnd.choice(self.n_classes[f],self.n_classes[f],replace=True);
+                        subset = np.unique(subset);                    
+                        
+                        new_data[np.in1d(self.data[:,f],subset),j] = 1; 
+                        new_data[np.invert(np.in1d(self.data[:,f],subset)),j] = 0;
+                        #~ print(new_data)
+                        #~ print(np.in1d(self.data[:,f],subset))
+                        
+                        subsets[j] = np.copy(subset);
+                #~ print("subs",subsets)
+                #~ print("new_data",new_data)
+                #~ print("-")
                 new_feature = np.sum(new_data*coefs,1)
                 if(len(np.unique(new_feature[data_idxs]))>1):
                     break
             
-            if(len(np.unique(new_feature[data_idxs]))==1):
+            if(len(np.unique(new_feature[data_idxs]))==1):                
                 continue;
           
             #~ print("features:",random_features)
             #~ print("coefs:",coefs)
+            #~ print(new_feature)
             
             
             
-            
-          
-            for f in random_features:
-                if(self.data_type[f] == 1):
-                    subset = rnd.choice(self.n_classes[f],self.n_classes[f],replace=True);
-                    subset = np.unique(subset);
                     
-                    
-                    new_feature[np.in1d(self.data[:,f],subset)] = 1; 
-                    new_feature[np.invert(np.in1d(self.data[:,f],subset))] = 0; 
             
             #~ print("new:",new_feature)
             
             order = np.argsort(new_feature[data_idxs]);
             sorted_feature = (new_feature[data_idxs])[order];
+            #~ print(new_feature[data_idxs])
+            #~ print(order)
             
             uq_values, uq_idx = np.unique(sorted_feature,return_index = True);
+            
+            #~ print(sorted_feature)
+            #~ print(uq_values)
+           
             
             for split in range(len (uq_idx)-1):
                 split_number = (uq_values[split] + uq_values [ split+1])/2
@@ -302,6 +348,7 @@ class lin_tree:  # { #UNDER CONSTRUCTION
                     best_value = value;
                     best_data_left_idx = data_left_idx;
                     best_data_right_idx = data_right_idx;
+                    best_subsets = subsets;
             
             
             #~ if ((not isinstance(best_data_left_idx,int)) and (not isinstance(best_data_right_idx,int))):
@@ -315,7 +362,16 @@ class lin_tree:  # { #UNDER CONSTRUCTION
         #~ print("y_right:",np.unique(self.y[best_data_right_idx]))
         #~ print()
 
-        return best_features, best_split_number, best_data_left_idx, best_data_right_idx, best_coefs;
+
+        #~ print("features:",best_features)
+        #~ print("coefs:",best_coefs)
+        #~ print("splot:",best_split_number)
+        #~ print("subs:",best_subsets)
+        #~ print("idxs:", data_idxs)
+        #~ print()
+        
+        
+        return best_features, best_split_number, best_data_left_idx, best_data_right_idx, best_coefs,best_subsets;
 
     # }
 

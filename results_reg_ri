@@ -1,0 +1,12 @@
+dataset: servo
+Out-Of-Bag Error: 0.497053335352
+Out-Of-Bag Tree Error: 0.954597244639
+Test Error: 0.491715172184
+
+dataset: housing
+Out-Of-Bag Error: 19.9394676041
+Out-Of-Bag Tree Error: 0.986635998011
+Test Error: 16.7260654329
+
+
+

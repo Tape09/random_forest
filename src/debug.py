@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import sys
 import time
 
-
+rnd.seed(99899)
 n_retry = 20
 
 dataset  = sys.argv[1]
@@ -26,7 +26,6 @@ y_type=dp.cla_reg
 n_classes=dp.num_class
 
 
-
 n_iterations = 1
 
 oob_errs = []
@@ -34,20 +33,23 @@ oob_tree_errs = []
 test_errs = []
 for i in range(n_iterations):
     n = data.shape[0]
-    n_train = int(n*1.0)
-    n_test = n - n_train;
+    #~ n_train = int(n*1.0)
+    #~ n_test = n - n_train;
 
-    test_idxs = rnd.choice(np.arange(n),n_test,replace=False)
+    #~ test_idxs = rnd.choice(np.arange(n),n_test,replace=False)
     
-    train_mask = np.ones(n,dtype=bool)
-    train_mask[test_idxs] = False
+    #~ train_mask = np.ones(n,dtype=bool)
+    #~ train_mask[test_idxs] = False
     
-    data_train = data[train_mask,:]
-    y_train = y[train_mask]
-    data_test = data[~train_mask,:]
-    y_test = y[~train_mask]
+    #~ data_train = data[train_mask,:]
+    #~ y_train = y[train_mask]
+    #~ data_test = data[~train_mask,:]
+    #~ y_test = y[~train_mask]
     
-    tr=lin_tree(data_train,data_type,y_train,y_type,n_classes,n_retry=n_retry,F=2,L=3, min_leaf_size=1,f_num = "IG", f_cat = "IG")
+    data = data[0:10]
+    y = y[0:10]
+    tr=lin_tree(data,data_type,y,y_type,n_classes,n_retry=n_retry,F=2,L=2, min_leaf_size=1,f_num = "VR", f_cat = "VR")
+    #~ tr=tree(data,data_type,y,y_type,n_classes,n_retry=n_retry,F=2, min_leaf_size=1,f_num = "VR", f_cat = "VR")
     #~ forest=random_forest(data_train,data_type,y_train,y_type,n_classes,n_retry,number_of_trees=100,F=1,min_leaf_size=1,f_num = "IG", f_cat = "IG")
     
     #~ oob_errs.append(forest.calculateOutOfBagError())
@@ -90,14 +92,14 @@ for i in range(n_iterations):
 # t = tree(data[m:n], data_type, y[m:n], y_type, n_classes, n_retry = n_retry, f_num = "VR", f_cat = "VR");
 
 
-#~ preds = []
-#~ for i in range(data.shape[0]):
-    #~ preds.append(tr.predict(data[i]));
+preds = []
+for i in range(data.shape[0]):
+    preds.append(tr.predict(data[i]));
 
 
-#~ preds = np.array(preds);
-#~ correct = preds == y 
-#~ print(correct)
+preds = np.array(preds);
+correct = preds == y 
+print(correct)
 
 
 
